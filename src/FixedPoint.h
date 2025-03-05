@@ -5,6 +5,9 @@
 
 #pragma once
 
+#include <stdint.h>
+#include <stddef.h>
+#include <math.h>
 
 template<typename BaseType, size_t FracBitCount, size_t symCount = 3>
 struct FixedPoint {
