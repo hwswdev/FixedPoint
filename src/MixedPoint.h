@@ -10,7 +10,7 @@
 #include <math.h>
 
 
-template< typename BaseType, typename HelperType = BaseType, size_t DecimalSymAfterDot = 2, size_t FractionalBitCount = 4, size_t SymAfterDot = 0, typename... Limits >
+template< typename BaseType, typename HelperType = BaseType, size_t DecimalSymAfterDot = 0, size_t FractionalBitCount = 0 >
 struct MixedPoint {
 	constexpr static const size_t FractionalPartDecimalSymbolCount = DecimalSymAfterDot;
 	constexpr static const size_t FractionalPartBinaryBitCount = FractionalBitCount;
@@ -40,34 +40,32 @@ struct MixedPoint {
 	}
 
 	template< typename OtherMixedPoint >
-	constexpr inline const MixedPoint& operator+( const OtherMixedPoint& other ) const {
+	constexpr inline MixedPoint operator+( const OtherMixedPoint& other ) const {
 		MixedPoint result;
 		result._value = _value + convert( other );
-
 		return result;
 	}
 
 	template< typename OtherMixedPoint >
-	constexpr inline const MixedPoint& operator-( const OtherMixedPoint& other ) const {
+	constexpr inline MixedPoint operator-( const OtherMixedPoint& other ) const {
 		MixedPoint result;
 		result._value = _value - convert( other );
-
 		return result;
 	}
 
 	template< typename OtherMixedPoint >
-	constexpr inline const MixedPoint& operator*( const OtherMixedPoint& other ) const {
+	constexpr inline MixedPoint operator*( const OtherMixedPoint& other ) const {
+		const HelperType temp = _value;
 		MixedPoint result;
-		HelperType temp = _value;
-		result._value = temp * convert( other ) / OtherMixedPoint::ConversionMultiplyer;
+		result._value = temp * other.nativeValue() / OtherMixedPoint::ConversionMultiplyer;
 		return result;
 	}
 
 	template< typename OtherMixedPoint >
-	constexpr inline const MixedPoint& operator/( const OtherMixedPoint& other ) const {
+	constexpr inline MixedPoint operator/( const OtherMixedPoint& other ) const {
+		const HelperType temp = _value;
 		MixedPoint result;
-		HelperType temp = _value;
-		result._value = ( temp * OtherMixedPoint::ConversionMultiplyer) / convert( other );
+		result._value = ( temp * OtherMixedPoint::ConversionMultiplyer ) / other;
 		return result;
 	}
 
@@ -96,7 +94,7 @@ struct MixedPoint {
 		return ( _value <= convert( other ).nativeValue() );
 	}
 
-	constexpr inline bool operator+( const int value ) const {
+	constexpr inline MixedPoint operator+( const int value ) const {
 		// So, I think compile will shift it if it's power of 2
 		const BaseType temp = value * ConversionMultiplyer;
 		MixedPoint result;
@@ -104,7 +102,7 @@ struct MixedPoint {
 		return result;
 	}
 
-	constexpr inline bool operator-( const int value ) const {
+	constexpr inline MixedPoint operator-( const int value ) const {
 		// So, I think compile will shift it if it's power of 2
 		const BaseType temp = value * ConversionMultiplyer;
 		MixedPoint result;
@@ -112,15 +110,47 @@ struct MixedPoint {
 		return result;
 	}
 
-	constexpr inline bool operator*( const int value ) const {
+	constexpr inline MixedPoint operator*( const int value ) const {
 		MixedPoint result;
 		result._value = _value * value;
 		return result;
 	}
 
-	constexpr inline bool operator/( const int value ) const {
+	constexpr inline MixedPoint operator/( const int value ) const {
 		MixedPoint result;
 		result._value = _value / value;
+		return result;
+	}
+
+
+	constexpr inline MixedPoint operator+( const double value ) const {
+		// So, I think compile will shift it if it's power of 2
+		const BaseType temp = value * ConversionMultiplyer;
+		MixedPoint result;
+		result._value = _value + temp;
+		return result;
+	}
+
+	constexpr inline MixedPoint operator-( const double value ) const {
+		// So, I think compile will shift it if it's power of 2
+		const BaseType temp = value * ConversionMultiplyer;
+		MixedPoint result;
+		result._value = _value - temp;
+		return result;
+	}
+
+	constexpr inline MixedPoint operator*(  const double value  ) const {
+		HelperType temp = _value;
+		MixedPoint result;
+		temp = temp * ( value * ConversionMultiplyer );
+		result._value = temp / ConversionMultiplyer;
+		return result;
+	}
+
+	constexpr inline MixedPoint operator/(  const double value  ) const {
+		const HelperType temp = _value;
+		MixedPoint result;
+		result._value = ( temp * ConversionMultiplyer) / ( value * ConversionMultiplyer );
 		return result;
 	}
 
@@ -153,19 +183,19 @@ private:
 				constexpr const size_t ShiftSize = OtherBin - ThisBin;
 				// So I wanted to use shift (>>), but what if negative value
 				// I think compiler is not so stupid, and will make shift if possible
-				const BaseType DivValue =  ( static_cast<const BaseType>(1) << ShiftSize );
-				const BaseType result = ( other.nativeValue() ) / DivValue;
+				const BaseType DivValue = pow( 2, ShiftSize );
+				BaseType result = ( other.nativeValue() ) / DivValue;
 				return result;
 			}
 		} else {
-			constexpr const BaseType ThisMultiplyer  = pow( 10, ThisDec )  * pow(2, ThisBin );
-			constexpr const BaseType OtherMultiplyer = pow( 10, OtherDec ) * pow(2, OtherBin );
+			const BaseType ThisMultiplyer  = pow( 10, ThisDec )  * pow(2, ThisBin );
+			const BaseType OtherMultiplyer = pow( 10, OtherDec ) * pow(2, OtherBin );
 			if ( ThisMultiplyer >= OtherMultiplyer ) {
-				constexpr const BaseType MulValue = ThisMultiplyer / OtherMultiplyer;
+				const BaseType MulValue = ThisMultiplyer / OtherMultiplyer;
 				const BaseType result = other.nativeValue() * MulValue;
 				return result;
 			} else {
-				constexpr const BaseType DivValue = OtherMultiplyer / ThisMultiplyer;
+				const BaseType DivValue = OtherMultiplyer / ThisMultiplyer;
 				const BaseType result = other.nativeValue() / DivValue;
 				return result;
 			}
