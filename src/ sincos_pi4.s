@@ -6,40 +6,40 @@
   * @version   V1.0.0
   * @date      2025-03-10
   *
-  * @description  Function uint32_t sin( uint32_t x )  => sinFixed_0ToPi4
-  * @description  Function uint32_t cos( uint32_t x )  => cosFixed_0ToPi4
-  * @description  double to uint32_t are mapped as:
+  * @description  SIN & COS fixed point math in <= [  0 .. 1 ],  out <= [-1..1]
+  * @description  SIN & COS fixed point math in <= [ -1 .. 1 ],  out <= [-1..1]
+  *
+  * @description  Function int32_t sinFixed( uint32_t x )
+  * @description  Function int32_t cosFixed( uint32_t x )
+  *
   * @description  0.0          =>  0x00000000,
   * @description  0.25         =>  0x40000000,
   * @description  0.5          =>  0x80000000,
   * @description  0.75         =>  0xC0000000,
   * @description  0.999999999  =>  0xFFFFFFFF,
-  * @description  0.7853981633 =>  0xC90FDAA2 (PI/4)
-  * @description  valid  X => [ 0x00000000 .. 0xC90FDAA2 ]
+  * @description  valid  x => [ 0x00000000 .. 0xFFFFFFFF ]
   *
-  * @description  Function uint32_t twoPiScale( uint32_t x )
-  * @description  x is mapped as
+  * @description  Return: sin( x * 2 * pi / (2^32) ) * (1 / 2^31)
+  * @description  Result scaled as
+  * @description -0.999999999  =>  0xFFFFFFFF,
+  * @description -0.25         =>  0xE0000000,
+  * @description -0.5          =>  0xC0000000,
+  * @description -0.75         =>  0x40000000
   * @description  0.0          =>  0x00000000,
-  * @description  0.25         =>  0x10000000,
-  * @description  0.5          =>  0x10000000,
-  * @description  0.75         =>  0xC0000000,
-  * @description  0.999999999  =>  0xFFFFFFFF,
-  * @description  0.7853981633 =>  0xC90FDAA2 (PI/4)
+  * @description  0.25         =>  0x20000000,
+  * @description  0.5          =>  0x40000000,
+  * @description  0.75         =>  0x60000000,
+  * @description  0.999999999  =>  0x7FFFFFFF,
   *
-  * @description  Function uint32_t twoPiScale( uint32_t x )
-  * @description  valid X => [ 0x00000000 .. 0x10000000 ],
-  * @description  i.e X => [ 0.0 .. 0.125 ]
-  * @description  result => [ 0x00000000 .. 0xC90FDAA2 ]
-  * @description  Most 3 bits, can be used to select form of transformation
-  * @description  { [0 .. PI/4 ], [ PI/4 .. PI/2 ], [ PI/2 .. 3*PI/2 ], [ 3*PI/2 .. 2*PI ]
-  * @description  -1 which is equals to 0xFFFFFFFF is equals to 0.999999999 * (2 * PI)
   *******************************************************************************************
  */
 
 .syntax unified
 .cpu cortex-m3
-.thumb
-  .global sinFixed_0ToPi4
+
+
+  .thumb
+//  .global sinFixed_0ToPi4
   .section .text
   .type sinFixed_0ToPi4, %function
   .align 4
@@ -111,10 +111,7 @@ sin_k3:
 .word  0x0000006B // ( 1 / 39916800 )
 
 
-.syntax unified
-.cpu cortex-m3
-.thumb
-  .global cosFixed_0ToPi4
+//  .global cosFixed_0ToPi4
   .section .text
   .type cosFixed_0ToPi4, %function
   .align 4
@@ -185,22 +182,194 @@ cos_k2:
 .word 0x0000049F // ( 1 / 3628800 )
 
 
-
-.syntax unified
-.cpu cortex-m3
-.thumb
-  .global toTwoPiScale
+   .thumb
   .section .text
   .type toTwoPiScale, %function
   .align 4
 toTwoPiScale:
-   push {r1}
-   ldr r1, =#0xc90fdaa2
-   umull r1, r0, r1, r0
-   lsl r0, r0, #3
-   lsr r1, r1, #29
-   and r1, r1, #0x07
-   orr r0, r0, r1
-   pop {r1}
+  push {r1}
+  ldr r1, =#0xc90fdaa2
+  umull r1, r0, r1, r0
+  lsl r0, r0, #3
+  orr r0, r0, r1, lsr #(32-3)
+  pop {r1}
+  bx lr
+
+
+// Calculate sinus value [0..1/8] of circle
+   .thumb
+  .section .text
+  .type sin_000_125, %function
+  .align 4
+sin_000_125:
+ 	push {lr}
+	bl toTwoPiScale
+  	bl sinFixed_0ToPi4
+  	lsr r0, r0, #1
+  	pop {lr}
+	bx lr
+
+
+// Calculate sinus value [1/8..2/8] of circle
+   .thumb
+  .section .text
+  .type sin_125_250, %function
+  .align 4
+sin_125_250:
+ 	push {r1, lr}
+ 	mov r1, #0x40000000 // (PI/2 - X)
+ 	sub r0, r1, r0
+ 	bl toTwoPiScale
+  	bl cosFixed_0ToPi4
+  	lsr r0, r0, #1
+ 	pop  {r1, lr}
+	bx lr
+
+// Calculate sinus value [2/8..3/8] of circle
+  .thumb
+  .section .text
+  .type sin_250_375, %function
+  .align 4
+sin_250_375:
+ 	push {r1, lr}
+ 	mov r1, #0x40000000 // ( X - PI/2)
+ 	sub r0, r0, r1
+ 	bl toTwoPiScale
+  	bl cosFixed_0ToPi4
+  	lsr r0, r0, #1
+ 	pop  {r1, lr}
+	bx lr
+
+// Calculate sinus value [3/8..4/8] of circle
+  .thumb
+  .global sin_375_500
+  .section .text
+  .type sin_375_500, %function
+  .align 4
+sin_375_500:
+ 	push {r1, lr}
+ 	mov r1, #0x80000000 // (PI/2 - X)
+ 	sub r0, r1, r0
+ 	bl toTwoPiScale
+  	bl sinFixed_0ToPi4
+  	lsr r0, r0, #1
+ 	pop  {r1, lr}
+	bx lr
+
+
+// Calculate sinus value [4/8..5/8] of circle
+   .thumb
+  .global sin_500_625
+  .section .text
+  .type sin_500_625, %function
+  .align 4
+sin_500_625:
+ 	push {r1, lr}
+ 	bl toTwoPiScale
+  	bl sinFixed_0ToPi4
+  	mvn r0, r0, lsr #1
+  	add r0, r0, #1
+ 	pop  {r1, lr}
+	bx lr
+
+// Calculate sinus value [5/8..6/8] of circle
+   .thumb
+  .section .text
+  .type sin_625_750, %function
+  .align 4
+sin_625_750:
+ 	push {r1, lr}
+ 	mov r1, #0x40000000 // ( 3PI/2 - X)
+ 	sub r0, r1, r0
+ 	bl toTwoPiScale
+  	bl cosFixed_0ToPi4
+  	mvn r0, r0, lsr #1
+  	add r0, r0, #1
+ 	pop  {r1, lr}
+	bx lr
+
+
+// Calculate sinus value [6/8..7/8] of circle
+  .thumb
+  .section .text
+  .type sin_750_875, %function
+  .align 4
+sin_750_875:
+ 	push {r1, lr}
+ 	mov r1, #0x40000000 // ( X - 3PI/2)
+ 	sub r0, r0, r1
+ 	bl toTwoPiScale
+  	bl cosFixed_0ToPi4
+  	mvn r0, r0, lsr #1
+  	add r0, r0, #1
+ 	pop  {r1, lr}
+	bx lr
+
+
+// Calculate sinus value [7/8..1] of circle
+  .thumb
+  .section .text
+  .type sin_875_000, %function
+  .align 4
+sin_875_000:
+ 	push {r1, lr}
+ 	mov r1, #0x80000000
+ 	sub r0, r1, r0
+ 	bl toTwoPiScale
+  	bl sinFixed_0ToPi4
+  	mvn r0, r0, lsr #1
+  	add r0, r0, #1
+ 	pop  {r1, lr}
+	bx lr
+
+
+  .thumb
+  .section .text
+  .global sinFixed
+  .type sinFixed, %function
+  .align 4
+// Calculate cos value [ 0 .. 1 - (1/1^24) ] of circle
+sinFixed:
+   push { r1, r2, lr }
+   // Load return address
+   ldr r1, =ret
+   // Thumb mode reutrn
+   orr lr, r1, #1
+   // Get function pointer
+   ldr r1, =#sin_func_ptr
+   // Calculate offset
+   lsr r2, r0, #(32 - 3)
+   add r1, r1, r2, lsl #2
+   // Load function pointer
+   ldr r1, [r1]
+   and r0, r0, #0x7FFFFFFF
+   bx r1
+ret:
+   pop  { r1, r2, lr }
    bx lr
+
+.align 4
+sin_func_ptr:
+.word  sin_000_125
+.word  sin_125_250
+.word  sin_250_375
+.word  sin_375_500
+.word  sin_500_625
+.word  sin_625_750
+.word  sin_750_875
+.word  sin_875_000
+
+// Calculate cos value [ 0 .. 1 - (1/1^24) ] of circle
+  .thumb
+  .global cosFixed
+  .section .text
+  .type cosFixed, %function
+  .align 4
+cosFixed:
+  add r0, r0, #0x40000000
+  b sinFixed
+  bx lr
+
+
+
 
