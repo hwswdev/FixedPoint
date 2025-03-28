@@ -40,10 +40,16 @@
 .cpu cortex-m3
 .thumb
 
-
+.global sinFixed_0ToPi4
+.global cosFixed_0ToPi4
+.global toTwoPiScale
+.global cosFixed
+.global sinFixed
+.global cosSignedFixed
+.global sinSignedFixed
 
 .section .text
-.global sinFixed_0ToPi4
+
 .type sinFixed_0ToPi4, %function
 .align 4
 sinFixed_0ToPi4:
@@ -114,8 +120,6 @@ sin_k3: // Teylor coefficents
 .word  0x0000006B // ( 1 / 39916800 )
 
 
-.section .text
-.global cosFixed_0ToPi4
 .type cosFixed_0ToPi4, %function
 .align 4
 cosFixed_0ToPi4:
@@ -190,8 +194,6 @@ cos_k2: // Teylor coefficents
 .word 0x0000049F // ( 1 / 3628800 )
 
 
-.thumb
-.section .text
 .type toTwoPiScale, %function
 .align 4
 // Scale interval [0..1/8] => [0..PI/4]
@@ -205,20 +207,20 @@ toTwoPiScale:
   bx lr
 
 
-.thumb
-.global cosFixed
-.section .text
-.type cosFixed, %function
 
-.section .text
-.global sinFixed
+.type sinSignedFixed, %function
+.type cosSignedFixed, %function
+.type cosFixed, %function
 .type sinFixed, %function
+
 .align 4
 // Calculate cos value [ 0 .. 1 - (1/1^31) ] of circle
+cosSignedFixed:
 cosFixed:
   add r0, r0, #0x40000000
   nop
 // Calculate sin value [ 0 .. 1 - (1/1^31) ] of circle
+sinSignedFixed:
 sinFixed:
   push { r1, r2, lr }
   // Get function pointer
@@ -328,6 +330,9 @@ sin_case_select:
    .word (case_sin_625_750)
    .word (case_sin_750_875)
    .word (case_sin_875_000)
+
+
+
 
 
 
