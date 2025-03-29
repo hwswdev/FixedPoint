@@ -7,91 +7,160 @@
 
 
 #include "SinCosFixed.h"
+#include <math.h>
 
-extern "C" bool sinCosFixedTest() {
 
-	const uint32_t MaxSinCos0Pi4DiffAtPI4 = 1;
-	const uint32_t MaxSinCos0Pi4Value = 0xFFFFFFFF;
-	const uint32_t MinSinCos0Pi4Value = 0x00000000;
+extern "C" bool sinCosDispPi4Test() {
+	constexpr const uint64_t One = static_cast<uint64_t>(1) << 32;
+	constexpr const double   PIf = 3.14159265358979;
+	constexpr const double   PI4f = PIf / 4;
+	constexpr const uint32_t PI4 = PI4f * One;
+	constexpr const uint32_t dAngle = 0x10000;
 
-	const uint64_t One = static_cast<uint64_t>(1) << 32;
-	const double PIf = 3.14159265358979;
-	const double PI4f = PIf / 4;
-	const uint32_t PI4 = PI4f * One;
+	double minRadiusVal    = 1000000000.0;
+	double maxRadiusVal    = 0.0;
+	double sumRadiusVal    = 0.0;
+	uint32_t sumCycleCount = 0.0;
 
-	uint32_t maxAbsQError0Pi4 = 0;
-	uint32_t maxAbsQErrorAngle0Pi4 = 0;
 
-	const uint32_t sin0 = sinFixed_0ToPi4( 0 );
-	const uint32_t cos0 = cosFixed_0ToPi4( 0 );
-	const uint32_t sinPI4 = sinFixed_0ToPi4( PI4 );
-	const uint32_t cosPI4 = cosFixed_0ToPi4( PI4 );
+	// Calculate center value (math waiting),
+	// Calculate maximum and minimum values
+	for ( uint32_t angle = 0; angle <= PI4; angle += dAngle ) {
 
-	const uint32_t sinCosPi4Err = ( sinPI4 < cosPI4 ) ? ( cosPI4 - sinPI4 ) : ( sinPI4 - cosPI4 );
+		const uint64_t sinVal = sinFixed_0ToPi4( angle );
+		const uint64_t cosVal = cosFixed_0ToPi4( angle );
 
-	// Check sin value at 0
-	if ( MinSinCos0Pi4Value != sin0 ) return false;
-	// Check cos value at 0
-	if ( MaxSinCos0Pi4Value != cos0 ) return false;
-	// So, this is mean that error, at X = PI/4 less then 2LSB
-	// 1 / (2^32) equals to 2.3 * (10 ^ -10). 2 LSB is about 4.6 * (10 ^ -10)
-	if ( sinCosPi4Err > MaxSinCos0Pi4DiffAtPI4 )   return false;
+		const double sinX = static_cast<double>(sinVal) / One;
+		const double cosX = static_cast<double>(cosVal) / One;
 
-	for ( uint32_t angle = 0; angle < PI4; angle++ ) {
+		const double quadRadius = (sinX * sinX) + (cosX * cosX);
+		const double radius = sqrt(quadRadius);
 
-		const uint32_t sinVal = sinFixed_0ToPi4( angle );
-		const uint32_t cosVal = cosFixed_0ToPi4( angle );
+		sumRadiusVal += radius;
+		maxRadiusVal = ( radius > maxRadiusVal ) ? radius : maxRadiusVal;
+		minRadiusVal = ( radius < minRadiusVal ) ? radius : minRadiusVal;
 
-		const uint64_t sinQ = ( static_cast<uint64_t>(sinVal) * sinVal ) >> 2;
-		const uint64_t cosQ = ( static_cast<uint64_t>(cosVal) * cosVal ) >> 2;
-		const uint64_t sum = (sinQ + cosQ) >> 30;
-		const uint32_t absSquareError = (One > sum) ? ( One - sum ) : ( sum - One );
-
-		if ( absSquareError > maxAbsQError0Pi4 ) {
-			maxAbsQError0Pi4 = absSquareError;
-			maxAbsQErrorAngle0Pi4 = angle;
-		}
-
+		sumCycleCount++;
 	}
 
-	uint32_t maxAbsQError = 0;
-	uint32_t maxAbsQErrorAngle = 0;
+	const double mathWaitRadius = sumRadiusVal / sumCycleCount;
 
-	for ( uint32_t angle = 0; angle < 0xFFFFF000; angle++ ) {
+	// Calculate disperse
+	double sumRadiusQuadDiff = 0.0;
+	for ( uint32_t angle = 0; angle <= PI4; angle += dAngle ) {
+
+		const uint64_t sinVal = sinFixed_0ToPi4( angle );
+		const uint64_t cosVal = cosFixed_0ToPi4( angle );
+
+		const double sinX = static_cast<double>(sinVal) / One;
+		const double cosX = static_cast<double>(cosVal) / One;
+
+		const double quadRadius = (sinX * sinX) + (cosX * cosX);
+		const double radius = sqrt(quadRadius);
+		const double diff = (radius - mathWaitRadius);
+		const double diffQ = diff * diff;
+		sumRadiusQuadDiff += diffQ;
+	}
+
+	const double midQuadDiffSum = sumRadiusQuadDiff / sumCycleCount;
+
+
+	const double queryCenterValue = 1.0;
+
+	const double centerVal    =  mathWaitRadius;
+	const double dispRadius   =  sqrt( midQuadDiffSum );
+	const double maxDiffVal   =  maxRadiusVal - mathWaitRadius;
+	const double minDiffVal   =  mathWaitRadius - minRadiusVal;
+	const double radiusErr    =  centerVal - queryCenterValue;
+	const double radiusAbsErr = abs( radiusErr );
+
+	if ( maxDiffVal   > 7.2e-10 )   return false;
+	if ( minDiffVal   > 7.2e-10 )   return false;
+	if ( dispRadius   > 2.5e-10 )  return false;
+	if ( radiusAbsErr > 2.5e-10 )  return false;
+
+	return true;
+}
+
+extern "C" bool sinCosDispTest() {
+	constexpr const uint64_t One = static_cast<uint64_t>(1) << 31;
+	constexpr const uint32_t dAngle   = 0x10000;
+	constexpr const uint32_t MaxAngle = 0xFFFF0000;
+
+	double minRadiusVal    = 1000000000.0;
+	double maxRadiusVal    = 0.0;
+	double sumRadiusVal    = 0.0;
+	uint32_t sumCycleCount = 0.0;
+
+
+	// Calculate center value (math waiting),
+	// Calculate maximum and minimum values
+	for ( uint32_t angle = 0; angle < MaxAngle; angle += dAngle ) {
+
 		const int32_t sinVal = sinFixed( angle );
 		const int32_t cosVal = cosFixed( angle );
 
-		const uint32_t sinAbsVal = ( sinVal < 0 ) ? -sinVal : sinVal;
-		const uint32_t cosAbsVal = ( cosVal < 0 ) ? -cosVal : cosVal;
+		const double sinX = static_cast<double>(sinVal) / One;
+		const double cosX = static_cast<double>(cosVal) / One;
 
-		const uint64_t sinQ = ( static_cast<uint64_t>(sinAbsVal) * sinAbsVal );
-		const uint64_t cosQ = ( static_cast<uint64_t>(cosAbsVal) * cosAbsVal );
-		const uint64_t sum = (sinQ + cosQ) >> 30;
-		const uint32_t absSquareError = (One > sum) ? ( One - sum ) : ( sum - One );
+		const double quadRadius = (sinX * sinX) + (cosX * cosX);
+		const double radius = sqrt(quadRadius);
 
-		if ( absSquareError > maxAbsQError ) {
-			maxAbsQError = absSquareError;
-			maxAbsQErrorAngle = angle;
-		}
+		sumRadiusVal += radius;
+		maxRadiusVal = ( radius > maxRadiusVal ) ? radius : maxRadiusVal;
+		minRadiusVal = ( radius < minRadiusVal ) ? radius : minRadiusVal;
 
+		sumCycleCount++;
 	}
 
-	// Check if error is lower then sqrt(7) i.e. 2.7 * LSB,
-	// but I think it is about +/-1 LSB, because of max cos value is 0xFFFFFFFF
-	if ( maxAbsQError0Pi4 > 7) return false;
+	const double mathWaitRadius = sumRadiusVal / sumCycleCount;
 
-	// Check if error is lower then sqrt(9), i.e 3 * LSB, but I think it is less about
-	if ( maxAbsQError > 8 ) return false;
+	// Calculate disperse
+	double sumRadiusQuadDiff = 0.0;
+	for ( uint32_t angle = 0; angle < MaxAngle; angle += dAngle ) {
 
-	// So. what is it mean ERROR equals to 3LSB ?
-	// It means that 3* 1 / (2^32), i.e 7 * (10 ^ -10)
+		const int32_t sinVal = sinFixed( angle );
+		const int32_t cosVal = cosFixed( angle );
 
-	// It means if you use it in CNC, and want to make circle which radius is 1 meter
-	// You will get error about 0.0000007mm
-	// OR if you will start to circle with Earth radius, you will get error about 28mm.
-	// OR if you get sputnik space distance with radius 100.000KM, you will get error about 70mm, i.e. 0.07m
+		const double sinX = static_cast<double>(sinVal) / One;
+		const double cosX = static_cast<double>(cosVal) / One;
 
-	// Success
+		const double quadRadius = (sinX * sinX) + (cosX * cosX);
+		const double radius = sqrt(quadRadius);
+		const double diff = (radius - mathWaitRadius);
+		const double diffQ = diff * diff;
+		sumRadiusQuadDiff += diffQ;
+	}
+
+	const double midQuadDiffSum = sumRadiusQuadDiff / sumCycleCount;
+
+
+	const double queryCenterValue = 1.0;
+
+	const double centerVal    =  mathWaitRadius;
+	const double dispRadius   =  sqrt( midQuadDiffSum );
+	const double maxDiffVal   =  maxRadiusVal - mathWaitRadius;
+	const double minDiffVal   =  mathWaitRadius - minRadiusVal;
+	const double centerErr    =  centerVal - queryCenterValue;
+	const double centerAbsErr = abs( centerErr );
+
+	if ( maxDiffVal   > 9.0e-10 )  return false;
+	if ( minDiffVal   > 9.0e-10 )  return false;
+	if ( dispRadius   > 2.5e-10 ) return false;
+	if ( centerAbsErr > 5.0e-10 ) return false;
+
+	return true;
+}
+
+
+extern "C" bool sinCosFixedTest() {
+
+	const bool pi4DispTestSuccess = sinCosDispPi4Test();
+	if ( !pi4DispTestSuccess ) return false;
+
+	const bool dispTestSuccess = sinCosDispTest();
+	if ( !dispTestSuccess ) return false;
+
 	return true;
 }
 

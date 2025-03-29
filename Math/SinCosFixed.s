@@ -12,29 +12,39 @@
   * @description  Function int32_t sinFixed( uint32_t x )
   * @description  Function int32_t cosFixed( uint32_t x )
   *
-  * @description  0.0          =>  0x00000000,
-  * @description  0.25         =>  0x40000000,
-  * @description  0.5          =>  0x80000000,
-  * @description  0.75         =>  0xC0000000,
-  * @description  0.999999999  =>  0xFFFFFFFF,
+  * @description  0.0           =>  0x00000000,
+  * @description  0.25          =>  0x40000000,
+  * @description  0.5           =>  0x80000000,
+  * @description  0.75          =>  0xC0000000,
+  * @description  0.999999999xx =>  0xFFFFFFFF
   * @description  valid  x => [ 0x00000000 .. 0xFFFFFFFF ]
   *
-  * @description  Return: sin( x * 2 * pi / (2^32) ) * ( 1 / 2^31 )
-  * @description  Return: cos( x * 2 * pi / (2^32) ) * ( 1 / 2^31 )
+  * @description  Return: int32_t sin( x * 2 * pi / (2^32) ) * ( 1 / 2^31 )
+  * @description  Return: int32_t cos( x * 2 * pi / (2^32) ) * ( 1 / 2^31 )
   * @description  Result scaled as
   *
-  * @description -0.999999999  =>  0xFFFFFFFF,
-  * @description -0.25         =>  0xE0000000,
-  * @description -0.5          =>  0xC0000000,
-  * @description -0.75         =>  0x40000000
-  * @description  0.0          =>  0x00000000,
-  * @description  0.25         =>  0x20000000,
-  * @description  0.5          =>  0x40000000,
-  * @description  0.75         =>  0x60000000,
-  * @description  0.999999999  =>  0x7FFFFFFF,
+  * @description -1.0           =>  0x80000000,
+  * @description -0.75          =>  0xA0000000,
+  * @description -0.5           =>  0xC0000000,
+  * @description -0.25          =>  0xE0000000,
+  * @description -0.000000000xx =>  0xFFFFFFFF,
+  * @description  0.0           =>  0x00000000,
+  * @description  0.25          =>  0x20000000,
+  * @description  0.5           =>  0x40000000,
+  * @description  0.75          =>  0x60000000,
+  * @description  0.999999999xx =>  0x7FFFFFFF
   *
   *******************************************************************************************
  */
+
+
+// So. Because of Taylor approximation, vaule of sin(x) is always
+// less then real value of sin(x). It is about one bit error
+// But, cos value can't be greater then 0.9999999(9)
+// So, in fact I used (0xFFFFFFFF - SomeApproxValue), or (0x100000000 - SomeApproxValue) on FixUp
+// In this case cos value is always less then 1.0, i.e. max 0.999999(9)
+
+#define COS_APPROX_MODE    1
 
 .syntax unified
 .cpu cortex-m3
@@ -47,6 +57,7 @@
 .global sinFixed
 .global cosSignedFixed
 .global sinSignedFixed
+.global mulAB
 
 .section .text
 
@@ -104,7 +115,7 @@ sinFixed_0ToPi4:
   umull r9 ,r0, r0, r8
   ldmia r7!, { r6 }
   umull r9, r5, r0, r6
-  //  R4 <= ( (P/4) => 00xb504f335 )
+  //  R4 <= ( (P/4) => 0xb504f335 )
   sub r4, r4, r5
 
   mov r0, r4
@@ -132,7 +143,11 @@ cosFixed_0ToPi4:
   // R8 - X^2 value
   push { r4 - r9 }
 
+#if ( COS_APPROX_MODE )
   mov r4, #0x00000000
+#else
+  mov r4, #0xFFFFFFFF
+#endif
 
   // X1(PI/4)  = 0xC90FDAA2
   // R8 <= X ^ 2,
@@ -176,11 +191,15 @@ cosFixed_0ToPi4:
   umull r9, r5, r0, r6
   sub r4, r4, r5
 
-  // FixUp value 0x00000000
-  // Value 0, at this point means 0x100000000
-  // But maximum value is 0xFFFFFFFF
+  // In the case, R4 is initilaize by 0x00000000
+  // It is equals to 0x100000000 ( But, it is 0x00000000 )
+  // FixUp it to get 0xFFFFFFFF
+#if ( COS_APPROX_MODE )
   subs r5, r4, #1
   sbc  r0, r4, #0
+#else
+  mov r0, r4
+#endif
 
   pop { r4 - r9 }
   bx lr
@@ -225,12 +244,10 @@ sinFixed:
   push { r1, r2, lr }
   // Get function pointer
   ldr r1, =#sin_case_select
-
   // Calculate offset
   lsr r2, r0, #(32 - 3)
   ldr r1, [ r1 , r2, lsl #2 ]
-
-  // Update value 0..PI - 1LSB
+  // Update value to 0..PI - 1LSB
   and r0, r0, #0x7FFFFFFF
   bx r1
 
@@ -332,7 +349,10 @@ sin_case_select:
    .word (case_sin_875_000)
 
 
-
-
-
-
+.type mulAB, %function
+.align 4
+mulAB:
+	push {r1}
+	umull r1, r0, r0, r0
+	pop {r1}
+	bx lr
