@@ -1,4 +1,3 @@
-
 /*
   ********************************************************************************************
   * @file      SinCosFixed.s dedicated to STM32Fxx device
@@ -44,187 +43,165 @@
 // So, in fact I used (0xFFFFFFFF - SomeApproxValue), or (0x100000000 - SomeApproxValue) on FixUp
 // In this case cos value is always less then 1.0, i.e. max 0.999999(9)
 
-#define COS_APPROX_MODE    1
-
 .syntax unified
 .cpu cortex-m3
 .thumb
 
 .global sinFixed_0ToPi4
 .global cosFixed_0ToPi4
-.global toTwoPiScale
 .global cosFixed
 .global sinFixed
 .global cosSignedFixed
 .global sinSignedFixed
-.global mulAB
 
 .section .text
 
+/*
+
+0x2AAAAAAA // (1/6)
+0x02222222 // (1/120)
+0x000D00D0 // (1/5040)
+0x00002E3B // (1/362880)
+0x0000006B // (1/39916800)
+*/
+
+
 .type sinFixed_0ToPi4, %function
+.type sinFixed_0ToPi4_Scaled, %function
+
 .align 4
+sinFixed_0ToPi4_Scaled:
+  	ldr r1, =#0xc90fdaa2 	// PI/4 value
+  	umull r1, r0, r1, r0
+  	lsl r0, r0, #3
+  	orr r0, r0, r1, lsr #(32-3)
 sinFixed_0ToPi4:
+	// R0 <= X
+	push {r1-r4}
 
-  // R0 - { x, x^3, x^5, x^7, x^9, x^11 }
-  // R4 - SUM ({ K3, K5, K7, K9, K11} * R0 ^ {3,5,7,9,11} )
-  // R5 - ({ K3, K5, K7, K9, K11} * R0 ^ {3,5,7,9,11} )
-  // R6 - K3, K5, K7, K9, K11
-  // R7 - ptr({K3..K11})
-  // R8 - X^2 value
-  push { r4 - r9 }
+	// 0xC90FDAA2 <= (PI/4) ^ 1
 
-  // R8 <= X ^ 2, R7, - doesn't metters
-  umull r7, r8, r0, r0
+	umull r1, r3, r0, r0   // R3 <= R0 * R0, i.e X^2
+	umull r1, r4, r3, r0   // R4 <= X^2 * X, i.e X^3
 
-  // {R5, R4} <= X, ( PI/4 => 0xc90fdaa2 )
-  mov r4, r0
+	// 0x9DE9E64D <= (PI/4) ^ 2
+	// 0x7C066D64 <= (PI/4) ^ 3
+	ldr r1, =#0x2AAAAAAA   // R1 <= 1/6
+	umull r1, r2, r1, r4   // R2 <= R1 * R4, i.e 1/6 * X^3
+	sub r0, r0, r2		   // R0 <= X - 1/6 * X^3
 
-  // R7 <= ptr{K3}
-  ldr r7, =sin_k3
+	// 0x4C814282 <= (PI/4) ^ 5
+	umull r1, r4, r4, r3   // R4 <= X^5
+	ldr r1, =#0x02222222   // R1 <= 1/120
+	umull r1, r2, r1, r4   // R2 <= 1/120 * X^5
+	add r0, r0, r2         // R0 <= X - 1/6 * X^3 + 1/120 * X^5
 
-  // K3
-  // R0 <= X ^ 3,  ( (PI/4)^3 => 0x7c066d64 )
-  umull r9 ,r0, r0, r8
-  ldmia r7!, { r6 }
-  umull r9, r5, r0, r6
-  sub r4, r4, r5
+	// 0x2F312C42 <= (PI/4) ^ 7
+	umull r1, r4, r4, r3   // R4 <= X^7
+	ldr r1, =#0x000D00D0   // R1 <= 1/5040
+	umull r1, r2, r1, r4   // R2 <= 1/5040 * X^7
+	sub r0, r0, r2         // R0 <= X - 1/6 * X^3  + 1/120 * X^5 - 1/5040 * X^7
 
-  // K5
-  // R0 <= X ^ 5,  ( (PI/4)^5 => 0x4c814282 )
-  umull r9 ,r0, r0, r8
-  ldmia r7!, { r6 }
-  umull r9, r5, r0, r6
-  add r4, r4, r5
+	// 0x1D1C465A <= (PI/4) ^ 9
+	umull r1, r4, r4, r3   // R4 <= X^9
+	ldr r1, =#0x00002E3B   // R1 <= 1/362880
+	umull r1, r2, r1, r4   // R2 <= 1/362880 * X^9
+	add r0, r0, r2         // R0 <= X - 1/6 * X^3  + 1/120 * X^5 - 1/5040 * X^7 + 1/362880 * X^9
 
-  // K7
-  // R0 <= X ^ 7,  ( (PI/4)^7 => 0x2f312c42 )
-  umull r9 ,r0, r0, r8
-  ldmia r7!, { r6 }
-  umull r9, r5, r0, r6
-  sub r4, r4, r5
+	// 0x11F4F011 <= (PI/4) ^ 11
+	umull r1, r4, r4, r3   // R4 <= X^11
+	ldr r1, =#0x0000006B   // R1 <= 1/39916800
+	umull r1, r2, r1, r4   // R2 <= 1/39916800 * X^11
+	sub r0, r0, r2         // R0 <=X - 1/6 * X^3  + 1/120 * X^5 - 1/5040 * X^7 + 1/362880 * X^9 - 1/39916800 * X^11
 
-  // K9
-  // R0 <= X ^ 9,  ( (PI/4)^9 => 0x1d1c465a )
-  umull r9 ,r0, r0, r8
-  ldmia r7!, { r6 }
-  umull r9, r5, r0, r6
-  add r4, r4, r5
-
-  // K11
-  // R0 <= X ^ 11  ( (PI/4)^11 => 0x11f4f011 )
-  umull r9 ,r0, r0, r8
-  ldmia r7!, { r6 }
-  umull r9, r5, r0, r6
-  //  R4 <= ( (P/4) => 0xb504f335 )
-  sub r4, r4, r5
-
-  mov r0, r4
-  pop { r4 - r9 }
-  bx lr
-
-.align 4
-sin_k3: // Teylor coefficents
-.word  0x2AAAAAAA // ( 1 / 6 )
-.word  0x02222222 // ( 1 / 120 )
-.word  0x000D00D0 // ( 1 / 5040 )
-.word  0x00002E3B // ( 1 / 362880 )
-.word  0x0000006B // ( 1 / 39916800 )
+	// 0.70710678142495453 <= 0xb504f335 <= SIN(PI/4)
+	pop {r1-r4}
+	bx lr
 
 
+
+/*
+0x80000000 // (1/2)
+0x0AAAAAAA // (1/24)
+0x000D00D0 // (1/720)
+0x0001A01A // (1/40320)
+0x0000049F // (1/3628800)
+*/
+
+.type cosFixed_0ToPi4_Scaled, %function
 .type cosFixed_0ToPi4, %function
+
 .align 4
+cosFixed_0ToPi4_Scaled:
+  	ldr r1, =#0xc90fdaa2 	// PI/4 value
+  	umull r1, r0, r1, r0
+  	lsl r0, r0, #3
+  	orr r0, r0, r1, lsr #(32-3)
 cosFixed_0ToPi4:
+	push {r1-r4}
 
-  // R0 - { x, x^2, x^4, x^6, x^8, x^10 }
-  // R4 - SUM ( { K2, K4, K6, K8, K10} * R0 ^ {2,4,6,8,10} )
-  // R5 - ( { K2, K4, K6, K8, K10} * R0 ^ {2,4,6,8,10} )
-  // R6 - K2, K4, K6, K8, K10
-  // R7 - ptr({K2..K10})
-  // R8 - X^2 value
-  push { r4 - r9 }
+	// 0xC90FDAA2 <= (PI/4) ^ 1
+	umull r1, r3, r0, r0   // R3 <= R0 * R0, i.e X^2
+	mov r4, r3             // R4 <= X^2
 
-#if ( COS_APPROX_MODE )
-  mov r4, #0x00000000
-#else
-  mov r4, #0xFFFFFFFF
-#endif
+	//mov r0, #0xFFFFFFFF    // R0 <= '0.999(9)'
+	mov r0, #0x00000000    // R0 <= '1.0'
 
-  // X1(PI/4)  = 0xC90FDAA2
-  // R8 <= X ^ 2,
-  umull r7, r8, r0, r0
-  mov r0, r8
+	// 0x9DE9E64D <= (PI/4) ^ 2
+	lsr r2, r4, #1		   // R2 <= 1/2 * X^2
+	sub r0, r0, r2         // R0 <=  1 - 1/2 * X^2
 
-  // R7 <= ptr{K3}
-  ldr r7, =cos_k2
+	// 0x6168BA2F <= (PI/4) ^ 4
+	umull r1, r4, r4, r3   // R4 <= X^4
+	ldr r1, =#0x0AAAAAAA   // ( 1 / 24 )
+	umull r1, r2, r1, r4   // R2 <= 1/24 * X^4
+	add r0, r0, r2         // R0 <=  1 - 1/2 * X^2 + 1/24*X^4
 
-  // K2
-  // R0 <= X2(PI/4)  = 0x9DE9E64D
-  ldmia r7!, { r6 }
-  umull r9, r5, r0, r6
-  sub r4, r4, r5
+	// 0x3C163A21 <= (PI/4) ^ 6
+	umull r1, r4, r4, r3   // R4 <= X^6
+	ldr r1, =#0x005B05B0   // ( 1 / 720 )
+	umull r1, r2, r1, r4   // R2 <= 1/720 * X^6
+	sub r0, r0, r2         // R0 <= 1 - 1/2 * X^2 + 1/24*X^4 - 1/720 * X^6
 
-  // K4
-  // R0 <= X4(PI/4)  = 0x6168BA2F
-  umull r9 ,r0, r0, r8
-  ldmia r7!, { r6 }
-  umull r9, r5, r0, r6
-  add r4, r4, r5
+	// 0x251087EF <= (PI/4) ^ 8
+	umull r1, r4, r4, r3   // R4 <= X^8
+	ldr r1, =#0x0001A01A   // ( 1 / 40320 )
+	umull r1, r2, r1, r4   // R2 <= 1/40320 * X^8
+	add r0, r0, r2         // R0 <= 1 - 1/2 * X^2 + 1/24*X^4 - 1/720 * X^6 + 1/40320 * X^8
 
-  // K6
-  // R0 <= X6(PI/4)  = 0x3C163A21
-  umull r9 ,r0, r0, r8
-  ldmia r7!, { r6 }
-  umull r9, r5, r0, r6
-  sub r4, r4, r5
+	// 0x16DD00C1 <= (PI/4) ^ 10
+	umull r1, r4, r4, r3   // R4 <= X^10
+	ldr r1, =#0x0000049F   // ( 1 / 3628800 )
+	umull r1, r2, r1, r4   // R2 <= 1/3628800 * X^10
+	sub r0, r0, r2         // R0 <= 1 - 1/2 * X^2 + 1/24*X^4 - 1/720 * X^6 + 1/40320 * X^8 - 1/39916800 * X^10
 
-  // K8
-  // R0 <= X8(PI/4)  = 0x251087EF
-  umull r9 ,r0, r0, r8
-  ldmia r7!, { r6 }
-  umull r9, r5, r0, r6
-  add r4, r4, r5
+	// 0x0E1A6D2D <= (PI/4) ^ 12
+	umull r1, r4, r4, r3   // R4 <= X^12
+	ldr r1, =#0x00000008   // ( 1 / 479001600 )
+	umull r1, r2, r1, r4   // R2 <= 1/479001600 * X^12
+	add r0, r0, r2         // R0 <= 1 - 1/2 * X^2 + 1/24*X^4 - 1/720 * X^6 + 1/40320 * X^8 - 1/39916800 * X^10 + 1/479001600 * X^12
 
-  // K10
-  // R0 <= X10(PI/4) = 0x16DD00C1
-  umull r9 ,r0, r0, r8
-  ldmia r7!, { r6 }
-  umull r9, r5, r0, r6
-  sub r4, r4, r5
+	// COS value correction, because of 0xFFFFFFFF is maximum
+	subs r1, r0, #1
+	sbc  r0, r0, #0
 
-  // In the case, R4 is initilaize by 0x00000000
-  // It is equals to 0x100000000 ( But, it is 0x00000000 )
-  // FixUp it to get 0xFFFFFFFF
-#if ( COS_APPROX_MODE )
-  subs r5, r4, #1
-  sbc  r0, r4, #0
-#else
-  mov r0, r4
-#endif
+	// 0.70710678119212389 <= 0xb504f334 <= COS(PI/4)
+	pop {r1-r4}
+	bx lr
 
-  pop { r4 - r9 }
-  bx lr
-
-.align 4
-cos_k2: // Teylor coefficents
-.word 0x80000000 // ( 1 / 2 )
-.word 0x0AAAAAAA // ( 1 / 24 )
-.word 0x005B05B0 // ( 1 / 720 )
-.word 0x0001A01A // ( 1 / 40320 )
-.word 0x0000049F // ( 1 / 3628800 )
-
-
+.global toTwoPiScale
 .type toTwoPiScale, %function
 .align 4
 // Scale interval [0..1/8] => [0..PI/4]
+// 0x20000000 => 0xc90fdaa2
 toTwoPiScale:
   push {r1}
-  ldr r1, =#0xc90fdaa2
+  ldr r1, =#0x6487ed51
   umull r1, r0, r1, r0
-  lsl r0, r0, #3
-  orr r0, r0, r1, lsr #(32-3)
+  lsl r0, r0, #4
+  orr r0, r0, r1, lsr #(32-4)
   pop {r1}
   bx lr
-
 
 
 .type sinSignedFixed, %function
@@ -233,7 +210,7 @@ toTwoPiScale:
 .type sinFixed, %function
 
 .align 4
-// Calculate cos value [ 0 .. 1 - (1/1^31) ] of circle
+
 cosSignedFixed:
 cosFixed:
   add r0, r0, #0x40000000
@@ -242,89 +219,73 @@ cosFixed:
 sinSignedFixed:
 sinFixed:
   push { r1, r2, lr }
-  // Get function pointer
-  ldr r1, =#sin_case_select
-  // Calculate offset
   lsr r2, r0, #(32 - 3)
-  ldr r1, [ r1 , r2, lsl #2 ]
-  // Update value to 0..PI - 1LSB
-  and r0, r0, #0x7FFFFFFF
-  bx r1
+  ldr r1, =#sinFixedTBBTable
+  tbb [ r1, r2 ]
 
-.align 4
 case_sin_000_125:
-  bl toTwoPiScale
-  bl sinFixed_0ToPi4
+  bl sinFixed_0ToPi4_Scaled
   lsr r0, r0, #1
-  b end_sin_case
+  pop  { r1, r2, lr }
+  bx lr
 
-.align 4
 case_sin_125_250:
   mov r1, #0x40000000 // (PI/2 - X)
   sub r0, r1, r0
-  bl toTwoPiScale
-  bl cosFixed_0ToPi4
+  bl cosFixed_0ToPi4_Scaled
   lsr r0, r0, #1
-  b end_sin_case
+  pop  { r1, r2, lr }
+  bx lr
 
-.align 4
 case_sin_250_375:
   mov r1, #0x40000000 // ( X - PI/2)
   sub r0, r0, r1
-  bl toTwoPiScale
-  bl cosFixed_0ToPi4
+  bl cosFixed_0ToPi4_Scaled
   lsr r0, r0, #1
-  b end_sin_case
+  pop  { r1, r2, lr }
+  bx lr
 
-.align 4
 case_sin_375_500:
   mov r1, #0x80000000 // ( PI - X )
   sub r0, r1, r0
-  bl toTwoPiScale
-  bl sinFixed_0ToPi4
+  bl sinFixed_0ToPi4_Scaled
   lsr r0, r0, #1
-  b end_sin_case
+  pop  { r1, r2, lr }
+  bx lr
 
-.align 4
 case_sin_500_625:
-  bl toTwoPiScale
-  bl sinFixed_0ToPi4
-  mvn r0, r0, lsr #1
-  add r0, r0, #1
-  b end_sin_case
-
-.align 4
-case_sin_625_750:
-  mov r1, #0x40000000 // ( PI/2 - X)
-  sub r0, r1, r0
-  bl toTwoPiScale
-  bl cosFixed_0ToPi4
-  mvn r0, r0, lsr #1
-  add r0, r0, #1
-  b end_sin_case
-
-.align 4
-case_sin_750_875:
-  mov r1, #0x40000000 // ( X - PI/2 )
-  sub r0, r0, r1
-  bl toTwoPiScale
-  bl cosFixed_0ToPi4
-  mvn r0, r0, lsr #1
-  add r0, r0, #1
-  b end_sin_case
-
-.align 4
-case_sin_875_000:
   mov r1, #0x80000000 // ( PI - X )
-  sub r0, r1, r0
-  bl toTwoPiScale
-  bl sinFixed_0ToPi4
-  mvn r0, r0, lsr #1
-  add r0, r0, #1
-  b end_sin_case
+  sub r0, r0, r1
+  bl sinFixed_0ToPi4_Scaled
+  lsr r0, r0, #1
+  negs r0, r0
+  pop  { r1, r2, lr }
+  bx lr
 
-.align 4
-end_sin_case:
+case_sin_625_750:
+  mov r1, #0xC0000000 // ( 3*PI/4 - X)
+  sub r0, r1, r0
+  bl cosFixed_0ToPi4_Scaled
+  lsr r0, r0, #1
+  negs r0, r0
+  pop  { r1, r2, lr }
+  bx lr
+
+case_sin_750_875:
+  mov r1, #0xC0000000 // ( X - 3*PI/4 )
+  sub r0, r0, r1
+  bl cosFixed_0ToPi4_Scaled
+  lsr r0, r0, #1
+  negs r0, r0
+  pop  { r1, r2, lr }
+  bx lr
+
+case_sin_875_000:
+  mov r1, #0x00000000 // ( 2*PI - X )
+  sub r0, r1, r0
+  bl sinFixed_0ToPi4_Scaled
+  lsr r0, r0, #1
+  negs r0, r0
   pop  { r1, r2, lr }
   bx lr
 
@@ -338,21 +299,14 @@ end_sin_case:
 .type case_sin_875_000, %function
 
 .align 4
-sin_case_select:
-   .word (case_sin_000_125)
-   .word (case_sin_125_250)
-   .word (case_sin_250_375)
-   .word (case_sin_375_500)
-   .word (case_sin_500_625)
-   .word (case_sin_625_750)
-   .word (case_sin_750_875)
-   .word (case_sin_875_000)
+sinFixedTBBTable:
+.byte ((case_sin_000_125 - case_sin_000_125 ) / 2)
+.byte ((case_sin_125_250 - case_sin_000_125 ) / 2)
+.byte ((case_sin_250_375 - case_sin_000_125 ) / 2)
+.byte ((case_sin_375_500 - case_sin_000_125 ) / 2)
+.byte ((case_sin_500_625 - case_sin_000_125 ) / 2)
+.byte ((case_sin_625_750 - case_sin_000_125 ) / 2)
+.byte ((case_sin_750_875 - case_sin_000_125 ) / 2)
+.byte ((case_sin_875_000 - case_sin_000_125 ) / 2)
 
 
-.type mulAB, %function
-.align 4
-mulAB:
-	push {r1}
-	umull r1, r0, r0, r0
-	pop {r1}
-	bx lr
