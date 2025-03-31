@@ -14,10 +14,6 @@ uint32_t cosFixed_0ToPi4( uint32_t arg );
 int32_t  cosFixed( uint32_t arg );
 int32_t  cosSignedFixed( int32_t arg );
 
-uint32_t mulAB( uint32_t x, uint32_t y );
-
-bool sinCosFixedTest();
-
 #ifdef __cplusplus
 }
 #endif
