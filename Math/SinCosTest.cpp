@@ -1,9 +1,14 @@
-/*
- * SinCosTest.cpp
+
+/*****************************************************
  *
- *  Created on: Mar 27, 2025
- *      Author: Evgeny
- */
+ *  SinCosTest.cpp
+ *
+ *  Sin(x), Cos(x)
+ *  Tests ....
+ *  So. I think, I have to do it using FixedPoint
+ *  But that's temp tests to check
+ *
+ *****************************************************/
 
 
 #include "SinCosFixed.h"
@@ -21,7 +26,6 @@ extern "C" bool sinCosDispPi4Test() {
 	double maxRadiusVal    = 0.0;
 	double sumRadiusVal    = 0.0;
 	uint32_t sumCycleCount = 0.0;
-
 
 	// Calculate center value (math waiting),
 	// Calculate maximum and minimum values
@@ -76,8 +80,8 @@ extern "C" bool sinCosDispPi4Test() {
 
 	if ( maxDiffVal   > 7.2e-10 )  return false;
 	if ( minDiffVal   > 7.2e-10 )  return false;
-	if ( dispRadius   > 2.33e-10 )  return false;
-	if ( radiusAbsErr > 2.33e-10 )  return false;
+	if ( dispRadius   > 1.5e-10 )  return false;
+	if ( radiusAbsErr > 1.0e-10 )  return false;
 
 	return true;
 }
@@ -144,16 +148,16 @@ extern "C" bool sinCosDispTest() {
 	const double centerErr    =  centerVal - queryCenterValue;
 	const double centerAbsErr = abs( centerErr );
 
-	if ( maxDiffVal   > 9.0e-10 ) return false;
-	if ( minDiffVal   > 9.0e-10 ) return false;
-	if ( dispRadius   > 2.33e-10 ) return false;
-	if ( centerAbsErr > 4.66e-10 ) return false;
+	if ( maxDiffVal   > 8.0e-10 ) return false;
+	if ( minDiffVal   > 8.0e-10 ) return false;
+	if ( dispRadius   > 2.0e-10 ) return false;
+	if ( centerAbsErr > 1.0e-10 ) return false;
 
 	return true;
 }
 
 
-bool sinCosTest(){
+bool sinCosCompareTest(){
 	constexpr const double   PIf = 3.14159265358979;
 	constexpr const uint64_t One = static_cast<uint64_t>(1) << 32;
 
@@ -202,19 +206,49 @@ bool sinCosTest(){
 	const double sinDisp = sqrt( sinDispQ );
 	const double cosDisp = sqrt( cosDispQ );
 
-	if ( sinMaxDiff   > 9.0e-10 ) return false;
-	if ( cosMaxDiff   > 9.0e-10 ) return false;
-	if ( -cosMinDiff  > 9.0e-10 ) return false;
-	if ( -sinMinDiff  > 9.0e-10 ) return false;
-	if ( sinDisp  > 2.8e-10 ) return false;
-	if ( cosDisp  > 2.8e-10 ) return false;
+	if ( sinMaxDiff   > 8.0e-10 ) return false;
+	if ( cosMaxDiff   > 8.0e-10 ) return false;
+	if ( -sinMinDiff  > 8.0e-10 ) return false;
+	if ( -cosMinDiff  > 8.0e-10 ) return false;
+	if ( sinDisp  > 2.1e-10 ) return false;
+	if ( cosDisp  > 2.1e-10 ) return false;
 
 	return true;
 }
 
 
+bool sinCosPosSymmetricTest() {
+	constexpr const uint32_t dAngle   = 0x1000;
+	constexpr const uint32_t MaxAngle = 0x7FFFFFFF;
+
+	// Calculate center value (math waiting),
+	// Calculate maximum and minimum values
+	for ( uint32_t angle = 0; angle < MaxAngle; angle += dAngle ) {
+		const int32_t angleN = -static_cast<int32_t>(angle);
+
+		const int32_t sinValP = sinFixed( angle );
+		const int32_t sinValN = sinSignedFixed( angleN );
+
+		const int32_t cosValP = cosFixed( angle );
+		const int32_t cosValN = cosSignedFixed( angleN );
+
+		if ( cosValP != cosValN ) return false;
+		if ( sinValP != -sinValN ) return false;
+
+	}
+
+	return true;
+
+}
+
+
+
 extern "C" bool sinCosFixedTest() {
-	const bool commonTestSuccess = sinCosTest();
+
+	const bool symmetricTestSuccess = sinCosPosSymmetricTest();
+	if ( !symmetricTestSuccess ) return false;
+
+	const bool commonTestSuccess = sinCosCompareTest();
 	if ( !commonTestSuccess ) return false;
 
 	const bool pi4DispTestSuccess = sinCosDispPi4Test();
