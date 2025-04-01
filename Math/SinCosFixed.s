@@ -1,3 +1,4 @@
+
 /*
   ********************************************************************************************
   * @file      SinCosFixed.s dedicated to STM32Fxx device
@@ -53,6 +54,8 @@
 .global sinFixed
 .global cosSignedFixed
 .global sinSignedFixed
+.global rCosFixed
+.global rSinFixed
 
 .section .text
 
@@ -144,8 +147,7 @@ cosFixed_0ToPi4:
 	umull r1, r3, r0, r0   // R3 <= R0 * R0, i.e X^2
 	mov r4, r3             // R4 <= X^2
 
-	//mov r0, #0xFFFFFFFF    // R0 <= '0.999(9)'
-	mov r0, #0x00000000    // R0 <= '1.0'
+	mov r0, #0x00000000    // R0 <= '1.0' :-)
 
 	// 0x9DE9E64D <= (PI/4) ^ 2
 	lsr r2, r4, #1		   // R2 <= 1/2 * X^2
@@ -204,19 +206,18 @@ toTwoPiScale:
   bx lr
 
 
-.type sinSignedFixed, %function
+
+
 .type cosSignedFixed, %function
 .type cosFixed, %function
+.type sinSignedFixed, %function
 .type sinFixed, %function
 
 .align 4
-
-cosSignedFixed:
 cosFixed:
   add r0, r0, #0x40000000
   nop
 // Calculate sin value [ 0 .. 1 - (1/1^31) ] of circle
-sinSignedFixed:
 sinFixed:
   push { r1, r2, lr }
   lsr r2, r0, #(32 - 3)
@@ -230,32 +231,28 @@ case_sin_000_125:
   bx lr
 
 case_sin_125_250:
-  mov r1, #0x40000000 // (PI/2 - X)
-  sub r0, r1, r0
+  rsb r0, r0, #0x40000000 // (PI/2 - X)
   bl cosFixed_0ToPi4_Scaled
   lsr r0, r0, #1
   pop  { r1, r2, lr }
   bx lr
 
 case_sin_250_375:
-  mov r1, #0x40000000 // ( X - PI/2)
-  sub r0, r0, r1
+  sub r0, r0, #0x40000000 // ( X - PI/2 )
   bl cosFixed_0ToPi4_Scaled
   lsr r0, r0, #1
   pop  { r1, r2, lr }
   bx lr
 
 case_sin_375_500:
-  mov r1, #0x80000000 // ( PI - X )
-  sub r0, r1, r0
+  rsb r0, r0, #0x80000000 // ( PI - X )
   bl sinFixed_0ToPi4_Scaled
   lsr r0, r0, #1
   pop  { r1, r2, lr }
   bx lr
 
 case_sin_500_625:
-  mov r1, #0x80000000 // ( PI - X )
-  sub r0, r0, r1
+  sub r0, r0, #0x80000000 // ( X - PI )
   bl sinFixed_0ToPi4_Scaled
   lsr r0, r0, #1
   negs r0, r0
@@ -263,8 +260,7 @@ case_sin_500_625:
   bx lr
 
 case_sin_625_750:
-  mov r1, #0xC0000000 // ( 3*PI/4 - X)
-  sub r0, r1, r0
+  rsb r0, r0, #0xC0000000 // ( 3*PI/4 - X)
   bl cosFixed_0ToPi4_Scaled
   lsr r0, r0, #1
   negs r0, r0
@@ -272,8 +268,7 @@ case_sin_625_750:
   bx lr
 
 case_sin_750_875:
-  mov r1, #0xC0000000 // ( X - 3*PI/4 )
-  sub r0, r0, r1
+  sub r0, r0, #0xC0000000 // ( X - 3*PI/4 )
   bl cosFixed_0ToPi4_Scaled
   lsr r0, r0, #1
   negs r0, r0
@@ -281,8 +276,7 @@ case_sin_750_875:
   bx lr
 
 case_sin_875_000:
-  mov r1, #0x00000000 // ( 2*PI - X )
-  sub r0, r1, r0
+  rsb r0, r0, #0x00000000 // ( 2*PI - X )
   bl sinFixed_0ToPi4_Scaled
   lsr r0, r0, #1
   negs r0, r0
@@ -309,4 +303,95 @@ sinFixedTBBTable:
 .byte ((case_sin_750_875 - case_sin_000_125 ) / 2)
 .byte ((case_sin_875_000 - case_sin_000_125 ) / 2)
 
+
+
+.align 4
+rCosFixed:
+  add r0, r0, #0x40000000
+  nop
+rSinFixed:
+  push { r1-r3, lr }
+  mov r3, r1
+  lsr r2, r0, #(32 - 3)
+  ldr r1, =#rSinFixedTBBTable
+  tbb [ r1, r2 ]
+
+case_rsin_000_125:
+  bl sinFixed_0ToPi4_Scaled
+  umull r1, r0, r3, r0
+  pop  { r1-r3, lr }
+  bx lr
+
+case_rsin_125_250:
+  rsb r0, r0, #0x40000000 // (PI/2 - X)
+  bl cosFixed_0ToPi4_Scaled
+  umull r1, r0, r3, r0
+  pop  { r1-r3, lr }
+  bx lr
+
+case_rsin_250_375:
+  sub r0, r0, #0x40000000 // ( X - PI/2 )
+  bl cosFixed_0ToPi4_Scaled
+  umull r1, r0, r3, r0
+  pop  { r1-r3, lr }
+  bx lr
+
+case_rsin_375_500:
+  rsb r0, r0, #0x80000000 // ( PI - X )
+  bl sinFixed_0ToPi4_Scaled
+  umull r1, r0, r3, r0
+  pop  { r1-r3, lr }
+  bx lr
+
+case_rsin_500_625:
+  sub r0, r0, #0x80000000 // ( X - PI )
+  bl sinFixed_0ToPi4_Scaled
+  umull r1, r0, r3, r0
+  negs r0, r0
+  pop  { r1-r3, lr }
+  bx lr
+
+case_rsin_625_750:
+  rsb r0, r0, #0xC0000000 // ( 3*PI/4 - X)
+  bl cosFixed_0ToPi4_Scaled
+  umull r1, r0, r3, r0
+  negs r0, r0
+  pop  { r1-r3, lr }
+  bx lr
+
+case_rsin_750_875:
+  sub r0, r0, #0xC0000000 // ( X - 3*PI/4 )
+  bl cosFixed_0ToPi4_Scaled
+  umull r1, r0, r3, r0
+  negs r0, r0
+  pop  { r1-r3, lr }
+  bx lr
+
+case_rsin_875_000:
+  rsb r0, r0, #0x00000000 // ( 2*PI - X )
+  bl sinFixed_0ToPi4_Scaled
+  umull r1, r0, r3, r0
+  negs r0, r0
+  pop  { r1-r3, lr }
+  bx lr
+
+.type case_rsin_000_125, %function
+.type case_rsin_125_250, %function
+.type case_rsin_250_375, %function
+.type case_rsin_375_500, %function
+.type case_rsin_500_625, %function
+.type case_rsin_625_750, %function
+.type case_rsin_750_875, %function
+.type case_rsin_875_000, %function
+
+.align 4
+rSinFixedTBBTable:
+.byte ((case_rsin_000_125 - case_rsin_000_125 ) / 2)
+.byte ((case_rsin_125_250 - case_rsin_000_125 ) / 2)
+.byte ((case_rsin_250_375 - case_rsin_000_125 ) / 2)
+.byte ((case_rsin_375_500 - case_rsin_000_125 ) / 2)
+.byte ((case_rsin_500_625 - case_rsin_000_125 ) / 2)
+.byte ((case_rsin_625_750 - case_rsin_000_125 ) / 2)
+.byte ((case_rsin_750_875 - case_rsin_000_125 ) / 2)
+.byte ((case_rsin_875_000 - case_rsin_000_125 ) / 2)
 
