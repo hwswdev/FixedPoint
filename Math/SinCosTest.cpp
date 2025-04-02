@@ -15,247 +15,192 @@
 #include <math.h>
 
 
-extern "C" bool sinCosDispPi4Test() {
-	constexpr const uint64_t One = static_cast<uint64_t>(1) << 32;
-	constexpr const double   PIf = 3.14159265358979;
-	constexpr const double   PI4f = PIf / 4;
-	constexpr const uint32_t PI4 = PI4f * One;
-	constexpr const uint32_t dAngle = 0x1000;
-
-	double minRadiusVal    = 1000000000.0;
-	double maxRadiusVal    = 0.0;
-	double sumRadiusVal    = 0.0;
-	uint32_t sumCycleCount = 0.0;
-
-	// Calculate center value (math waiting),
-	// Calculate maximum and minimum values
-	for ( uint32_t angle = 0; angle <= PI4; angle += dAngle ) {
-
-		const uint64_t sinVal = sinFixed_0ToPi4( angle );
-		const uint64_t cosVal = cosFixed_0ToPi4( angle );
-
-		const double sinX = static_cast<double>(sinVal) / One;
-		const double cosX = static_cast<double>(cosVal) / One;
-
-		const double quadRadius = (sinX * sinX) + (cosX * cosX);
-		const double radius = sqrt(quadRadius);
-
-		sumRadiusVal += radius;
-		maxRadiusVal = ( radius > maxRadiusVal ) ? radius : maxRadiusVal;
-		minRadiusVal = ( radius < minRadiusVal ) ? radius : minRadiusVal;
-
-		sumCycleCount++;
-	}
-
-	const double mathWaitRadius = sumRadiusVal / sumCycleCount;
-
-	// Calculate disperse
-	double sumRadiusQuadDiff = 0.0;
-	for ( uint32_t angle = 0; angle <= PI4; angle += dAngle ) {
-
-		const uint64_t sinVal = sinFixed_0ToPi4( angle );
-		const uint64_t cosVal = cosFixed_0ToPi4( angle );
-
-		const double sinX = static_cast<double>(sinVal) / One;
-		const double cosX = static_cast<double>(cosVal) / One;
-
-		const double quadRadius = (sinX * sinX) + (cosX * cosX);
-		const double radius = sqrt(quadRadius);
-		const double diff = (radius - mathWaitRadius);
-		const double diffQ = diff * diff;
-		sumRadiusQuadDiff += diffQ;
-	}
-
-	const double midQuadDiffSum = sumRadiusQuadDiff / sumCycleCount;
-
-
-	const double queryCenterValue = 1.0;
-
-	const double centerVal    =  mathWaitRadius;
-	const double dispRadius   =  sqrt( midQuadDiffSum );
-	const double maxDiffVal   =  maxRadiusVal - mathWaitRadius;
-	const double minDiffVal   =  mathWaitRadius - minRadiusVal;
-	const double radiusErr    =  centerVal - queryCenterValue;
-	const double radiusAbsErr = abs( radiusErr );
-
-	if ( maxDiffVal   > 7.2e-10 )  return false;
-	if ( minDiffVal   > 7.2e-10 )  return false;
-	if ( dispRadius   > 1.5e-10 )  return false;
-	if ( radiusAbsErr > 1.0e-10 )  return false;
-
-	return true;
+constexpr uint32_t getScaledPiValue () {
+	constexpr const uint32_t PI = (1 << 31);
+	return PI;
 }
 
-extern "C" bool sinCosDispTest() {
-	constexpr const uint64_t One = static_cast<uint64_t>(1) << 31;
-	constexpr const uint32_t dAngle   = 0x1000;
-	constexpr const uint32_t MaxAngle = 0xFFFFF000;
+bool sinCosTest(){
 
-	double minRadiusVal    = 1000000000.0;
-	double maxRadiusVal    = 0.0;
-	double sumRadiusVal    = 0.0;
-	uint32_t sumCycleCount = 0.0;
+	constexpr const uint32_t PI = getScaledPiValue();
+	constexpr const uint32_t AngleCount = 360 * 60 * 60; // 0°0'1''
+	constexpr const uint32_t dAngle = PI / AngleCount;
+
+	uint32_t num = 0;
 
 
-	// Calculate center value (math waiting),
-	// Calculate maximum and minimum values
-	for ( uint32_t angle = 0; angle < MaxAngle; angle += dAngle ) {
+	for ( uint32_t angle = 0; angle < PI; angle += dAngle ) {
 
-		const int32_t sinVal = sinFixed( angle );
-		const int32_t cosVal = cosFixed( angle );
+		const int32_t angleN = -static_cast<int32_t>(angle);
 
-		const double sinX = static_cast<double>(sinVal) / One;
-		const double cosX = static_cast<double>(cosVal) / One;
+		const int32_t sinValP = sinFixed( angle );
+		const int32_t cosValP = cosFixed( angle );
 
-		const double quadRadius = (sinX * sinX) + (cosX * cosX);
-		const double radius = sqrt(quadRadius);
+		const int32_t sinValN = sinFixed( angleN );
+		const int32_t cosValN = cosFixed( angleN );
 
-		sumRadiusVal += radius;
-		maxRadiusVal = ( radius > maxRadiusVal ) ? radius : maxRadiusVal;
-		minRadiusVal = ( radius < minRadiusVal ) ? radius : minRadiusVal;
+		if ( cosValP != cosValN ) {
+			// Not symmetric
+			asm("bkpt");
+			return false;
+		}
+		if ( sinValP != -sinValN ) {
+			// Not symmetric
+			asm("bkpt");
+			return false;
+		}
 
-		sumCycleCount++;
+		const uint32_t sinAbsP = ((sinValP < 0) ? -sinValP : sinValP) << 1;
+		const uint32_t cosAbsP = ((cosValP < 0) ? -cosValP : cosValP) << 1;
+
+		const uint32_t sinAbsN = ((sinValN < 0) ? -sinValN : sinValN) << 1;
+		const uint32_t cosAbsN = ((cosValN < 0) ? -cosValN : cosValN) << 1;
+
+
+		const uint64_t sin1Q = ( static_cast<uint64_t>(sinAbsP) * sinAbsP ) >> 31;
+		const uint64_t cos1Q = ( static_cast<uint64_t>(cosAbsP) * cosAbsP ) >> 31;
+
+		const uint64_t sin2Q = ( static_cast<uint64_t>(sinAbsN) * sinAbsN ) >> 31;
+		const uint64_t cos2Q = ( static_cast<uint64_t>(cosAbsN) * cosAbsN ) >> 31;
+
+		const uint64_t r1Q = ( static_cast<uint64_t>(sin1Q) + static_cast<uint64_t>(cos1Q) ) >> 1;
+		const uint64_t r2Q = ( static_cast<uint64_t>(sin2Q) + static_cast<uint64_t>(cos2Q) ) >> 1;
+
+		const uint64_t maxRValue = ( static_cast<uint64_t>(1) << 32 ) + 4;
+		const uint64_t minRValue = ( static_cast<uint64_t>(1) << 32 ) - 6;
+
+		if ( ( minRValue > r1Q ) || ( maxRValue < r1Q  ) ||
+			 ( minRValue > r2Q ) || ( maxRValue < r2Q  ) ) {
+			// Here is radius error +3*LSB / -5*LSB
+			asm("bkpt");
+			return false;
+		}
+
+		num++;
+
 	}
-
-	const double mathWaitRadius = sumRadiusVal / sumCycleCount;
-
-	// Calculate disperse
-	double sumRadiusQuadDiff = 0.0;
-	for ( uint32_t angle = 0; angle < MaxAngle; angle += dAngle ) {
-
-		const int32_t sinVal = sinFixed( angle );
-		const int32_t cosVal = cosFixed( angle );
-
-		const double sinX = static_cast<double>(sinVal) / One;
-		const double cosX = static_cast<double>(cosVal) / One;
-
-		const double quadRadius = (sinX * sinX) + (cosX * cosX);
-		const double radius = sqrt(quadRadius);
-		const double diff = (radius - mathWaitRadius);
-		const double diffQ = diff * diff;
-		sumRadiusQuadDiff += diffQ;
-	}
-
-	const double midQuadDiffSum = sumRadiusQuadDiff / sumCycleCount;
-
-
-	const double queryCenterValue = 1.0;
-
-	const double centerVal    =  mathWaitRadius;
-	const double dispRadius   =  sqrt( midQuadDiffSum );
-	const double maxDiffVal   =  maxRadiusVal - mathWaitRadius;
-	const double minDiffVal   =  mathWaitRadius - minRadiusVal;
-	const double centerErr    =  centerVal - queryCenterValue;
-	const double centerAbsErr = abs( centerErr );
-
-	if ( maxDiffVal   > 8.0e-10 ) return false;
-	if ( minDiffVal   > 8.0e-10 ) return false;
-	if ( dispRadius   > 2.0e-10 ) return false;
-	if ( centerAbsErr > 1.0e-10 ) return false;
 
 	return true;
 }
 
 
-bool sinCosCompareTest(){
-	constexpr const double   PIf = 3.14159265358979;
-	constexpr const uint64_t One = static_cast<uint64_t>(1) << 32;
 
-	double sinMaxDiff = 0;
-	double sinMinDiff = 0;
-	double cosMaxDiff = 0;
-	double cosMinDiff = 0;
-	double sinDispSum = 0;
-	double cosDispSum = 0;
+double calcRadiusError( uint32_t radius ) {
+
+	const uint64_t Radius64BitQ = static_cast<uint64_t>(radius) * radius;
+	uint64_t sumQDiff = 0;
+	uint64_t maxRq = 0UL;
+	uint64_t minRq = 0xFFFFFFFFFFFFFFFFUL;
 	uint32_t count = 0;
 
-	for( uint32_t angle = 0; angle < 0xFFFF0000; angle += 0x10000 ) {
-		const double angleF = static_cast<double>(angle) * ( PIf * 2 ) / One;
+	for(uint32_t angle = 0; angle < 0xFFFFF000; angle += 0x100 ) {
 
-		const int32_t sinVal = sinFixed( angle );
-		const int32_t cosVal = cosFixed( angle );
+		const int32_t sinR = rSinFixed( angle, radius );
+		const int32_t cosR = rCosFixed( angle, radius );
 
-		const double sinF = static_cast<double>(sinVal) / (One >> 1);
-		const double cosF = static_cast<double>(cosVal) / (One >> 1);
+		// So. Single bit is already lost because of value sign,
+		// But I have to get correct result of multiply
+		const uint32_t mSinR = ( (sinR < 0) ? -sinR : sinR );
+		const uint32_t mCosR = ( (cosR < 0) ? -cosR : cosR );
 
-		const double origSinF = sin(angleF);
-		const double origCosF = cos(angleF);
+		// So I already loose 2 bits here
+		// Shift by one to allow sum of multiply without carry
+		const uint64_t sinQ = ( static_cast<uint64_t>(mSinR) * static_cast<uint64_t>(mSinR) );
+		const uint64_t cosQ = ( static_cast<uint64_t>(mCosR) * static_cast<uint64_t>(mCosR) );
 
-		const double sinDiff = sinF - origSinF;
-		const double cosDiff = cosF - origCosF;
+		// We are already lost 2 bits, because of sin/cos gave 31bit pos value max
+		// Multiply 31 * 31 gave us 30 bit, mapped to uint64_t.
+		// Shift it to get 31 bit again mapped to uint64_t
+		// 31bit value + 31bit value, can't be higher then 32bit, mapped to 64bit value
+		const uint64_t rQ    = ( sinQ + cosQ );
 
-		sinMaxDiff = ( sinMaxDiff < sinDiff ) ? sinDiff : sinMaxDiff;
-		sinMinDiff = ( sinMinDiff > sinDiff ) ? sinDiff : sinMinDiff;
+		if ( rQ > maxRq ) { maxRq = rQ; }
+		if ( rQ < minRq ) { minRq = rQ; }
 
-		cosMaxDiff = ( cosMaxDiff < cosDiff ) ? cosDiff : cosMaxDiff;
-		cosMinDiff = ( cosMinDiff > cosDiff ) ? cosDiff : cosMinDiff;
+		// diffQ = ( RealR * RealR  - CalculatedR * CalculatedR )
+		const int64_t diffQ = ( rQ - Radius64BitQ );
 
-		const double sinQDiff = sinDiff * sinDiff;
-		const double cosQDiff = cosDiff * cosDiff;
+		const uint64_t absDiffQ = (diffQ < 0) ? -diffQ : diffQ;
 
-		sinDispSum += sinQDiff;
-		cosDispSum += cosQDiff;
-
+		sumQDiff += absDiffQ;
 		count++;
 
 	}
 
-	const double sinDispQ = sinDispSum / count;
-	const double cosDispQ = cosDispSum / count;
+	const uint32_t rQuadDiff = sumQDiff / count;
+	const double qErr = static_cast<double>(rQuadDiff) / ( static_cast<uint64_t>(1) << (32 - 1) ); // Is it correct ??? I mean 32bit value, but sign.
+	const double radQ = static_cast<double>(Radius64BitQ);
+	const double maxQ = static_cast<double>(maxRq);
+	const double minQ = static_cast<double>(minRq);
 
-	const double sinDisp = sqrt( sinDispQ );
-	const double cosDisp = sqrt( cosDispQ );
+	const double rErr     = sqrt(qErr);
+	const double radMax   = sqrt(maxQ);
+	const double radMin   = sqrt(minQ);
 
-	if ( sinMaxDiff   > 8.0e-10 ) return false;
-	if ( cosMaxDiff   > 8.0e-10 ) return false;
-	if ( -sinMinDiff  > 8.0e-10 ) return false;
-	if ( -cosMinDiff  > 8.0e-10 ) return false;
-	if ( sinDisp  > 2.1e-10 ) return false;
-	if ( cosDisp  > 2.1e-10 ) return false;
+	const double dMax = radMax - radius;
+	const double dMin = radius - radMin;
 
-	return true;
+	return ( (dMax > dMin) ? dMax : dMin );
+
 }
 
+bool sinCosTestWithGeneric(){
+	constexpr const double PIf = 3.14159265358979;
+	constexpr const uint32_t PI = getScaledPiValue();
+	constexpr const uint32_t AngleCount = 360 * 60 * 60; // 0°0'1''
+	constexpr const uint32_t dAngle = PI / AngleCount;
+	constexpr const uint32_t radius = 0x7FFFFFFF;
 
-bool sinCosPosSymmetricTest() {
-	constexpr const uint32_t dAngle   = 0x1000;
-	constexpr const uint32_t MaxAngle = 0x7FFFFFFF;
+	uint32_t num = 0;
 
-	// Calculate center value (math waiting),
-	// Calculate maximum and minimum values
-	for ( uint32_t angle = 0; angle < MaxAngle; angle += dAngle ) {
+
+	for ( uint32_t angle = 0; angle < PI; angle += dAngle ) {
+
 		const int32_t angleN = -static_cast<int32_t>(angle);
 
-		const int32_t sinValP = sinFixed( angle );
-		const int32_t sinValN = sinSignedFixed( angleN );
+		const int32_t sinValP = rSinFixed( angle, radius );
+		const int32_t cosValP = rCosFixed( angle, radius );
 
-		const int32_t cosValP = cosFixed( angle );
-		const int32_t cosValN = cosSignedFixed( angleN );
+		const int32_t sinValN = rSinFixed( angleN, radius );
+		const int32_t cosValN = rCosFixed( angleN, radius );
 
-		if ( cosValP != cosValN ) return false;
-		if ( sinValP != -sinValN ) return false;
+		const double angleF = PIf * angle / PI;
+		const double nAngleF = -angleF;
+
+		const int32_t sinPOrig = radius * sin( angleF );
+		const int32_t cosPOrig = radius * cos( angleF );
+		const int32_t sinNOrig = radius * sin( nAngleF );
+		const int32_t cosNOrig = radius * cos( nAngleF );
+
+		const int32_t dSinP = sinValP - sinPOrig;
+		const int32_t dCosP = cosValP - cosPOrig;
+		const int32_t dSinN = sinValN - sinNOrig;
+		const int32_t dCosN = cosValN - cosNOrig;
+
+		const int32_t dAbsSinP = abs(dSinP);
+		const int32_t dAbsCosP = abs(dCosP);
+		const int32_t dAbsSinN = abs(dSinN);
+		const int32_t dAbsCosN = abs(dCosN);
+
+		if ( ( dAbsSinP > 1) || ( dAbsCosP > 1) ||
+			 ( dAbsSinN > 1) || ( dAbsCosN > 1) ) {
+			asm("bkpt");
+			return false;
+		}
 
 	}
 
 	return true;
-
 }
 
 
 
 extern "C" bool sinCosFixedTest() {
 
-	const bool symmetricTestSuccess = sinCosPosSymmetricTest();
-	if ( !symmetricTestSuccess ) return false;
-
-	const bool commonTestSuccess = sinCosCompareTest();
-	if ( !commonTestSuccess ) return false;
-
-	const bool pi4DispTestSuccess = sinCosDispPi4Test();
-	if ( !pi4DispTestSuccess ) return false;
-
-	const bool dispTestSuccess = sinCosDispTest();
-	if ( !dispTestSuccess ) return false;
+	if (! sinCosTestWithGeneric() ) return false;
+	double radiusError = calcRadiusError( 1000000000 );
+	if ( radiusError > 1.0 ) return false;
+	if ( !sinCosTest() ) return false;
 
 	return true;
 }
