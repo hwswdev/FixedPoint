@@ -57,7 +57,7 @@ size_t fractionalToUint32( const char *str,  uint32_t& result ) {
 }
 
 
-size_t decimalToUint32( const char *str,  uint32_t& result, size_t maxDecSymCount ) {
+size_t decimalToUint32( const char *str,  uint32_t& result, size_t maxDecSymCount, size_t minDecSymCount ) {
 	static constexpr const size_t   MaxDecimalSymbolCount = 10;
 	size_t index = 0;
 	uint32_t sum = 0;
@@ -70,6 +70,12 @@ size_t decimalToUint32( const char *str,  uint32_t& result, size_t maxDecSymCoun
 		}
 		index++;
 	}
+
+	while ( index < minDecSymCount ) {
+		sum = sum * 10;
+		index++;
+	}
+
 	result = sum;
 	return index;
 
@@ -149,7 +155,7 @@ size_t asciiToFpDecimal( const char *str,  bool& negative, uint32_t& decimal, ui
 	const char mayBeDot = str[offset];
 	if ( isDotSymbol( mayBeDot ) ) {
 		offset++;
-		const size_t fracSize = decimalToUint32( &str[offset], fractional, maxFracSymCount );
+		const size_t fracSize = decimalToUint32( &str[offset], fractional, maxFracSymCount, maxFracSymCount );
 		offset += fracSize;
 		if  ( 0 == fracSize ) fractional = 0;
 		const size_t len = (( fracSize ) || (decimalSize)) ? offset : 0;
