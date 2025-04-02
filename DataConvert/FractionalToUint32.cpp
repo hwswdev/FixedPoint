@@ -49,7 +49,7 @@ size_t fractionalToUint32( const char *str,  uint32_t& result ) {
 		sum += convTable[index][didg];
 		index++;
 	}
-	sum += 0x01;
+	//sum += 0x01;
 
 	result = sum;
 
