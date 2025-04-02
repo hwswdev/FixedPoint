@@ -153,8 +153,7 @@ static SymbolFlags Symbols[AsciiTableSymbolCount] = {
 	SymbolFlags( 0x2A, "'*'",                           Hex::False, Decimal::False,  Sign::False, Text::True,  Dot::False, NmeaSymbol::Special, 0 ),
 	SymbolFlags( 0x2B, "'+'",                           Hex::False, Decimal::False,  Sign::True,  Text::True,  Dot::False, NmeaSymbol::Regular, 0 ),
 	SymbolFlags( 0x2C, "','",                           Hex::False, Decimal::False,  Sign::False, Text::True,  Dot::False, NmeaSymbol::Special, 0 ),
-	SymbolFlags( 0x2D, "'-'",                           Hex::False, Decimal::False,  Sign::False, Text::True,  Dot::False, NmeaSymbol::Regular, 0 ),
-	SymbolFlags( 0x2E, "'.'",                           Hex::False, Decimal::False,  Sign::False, Text::True,  Dot::True,  NmeaSymbol::Regular, 0 ),
+	SymbolFlags( 0x2D, "'-'",                           Hex::False, Decimal::False,  Sign::True,  Text::True,  Dot::True,  NmeaSymbol::Regular, 0 ),
 	SymbolFlags( 0x2F, "'/'",                           Hex::False, Decimal::False,  Sign::False, Text::True,  Dot::False, NmeaSymbol::Invalid, 0 ),
 
 	SymbolFlags( 0x30, "'0'",                           Hex::True,  Decimal::True,   Sign::False, Text::True,  Dot::False, NmeaSymbol::Regular, 0 ),
