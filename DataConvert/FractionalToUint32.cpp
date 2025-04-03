@@ -13,7 +13,7 @@
 // In format 012345678, i.e 0,1,2,3..,8 is numbers if fractional value
 // i.e. XXXX.012345678
 // Function returns total symbol count (0..9) and value as result
-size_t fractionalToUint32( const char *str,  uint32_t& result ) {
+static size_t fractionalToUint32( const char *str,  const size_t strLengh, uint32_t& result ) {
 	static constexpr const size_t   DeciamlDigitCount = 10;
 	static constexpr const uint32_t MaxFracSymbolCount = 9;
 	// It is the matrix of weight of each number. I mean Ai * 1/(10^i)
@@ -35,7 +35,7 @@ size_t fractionalToUint32( const char *str,  uint32_t& result ) {
 			  0x00000863,   0x00000A11,   0x00000BBE,   0x00000D6C,   0x00000F19 },
 			{ 0x00000000,   0x0000002B,   0x00000056,   0x00000081,   0x000000AC,
 			  0x000000D7,   0x00000102,   0x0000012D,   0x00000158,   0x00000183 },
-			{ 0x00000000,   0x00000004,   0x00000009,   0x0000000D,   0x00000011,
+			{ 0x00000000,   0x00000005,   0x00000009,   0x0000000D,   0x00000011,
 			  0x00000015,   0x0000001A,   0x0000001E,   0x00000022,   0x00000027 },
 			};
 
@@ -44,12 +44,16 @@ size_t fractionalToUint32( const char *str,  uint32_t& result ) {
 	size_t index = 0;
 	uint32_t sum = 0;
 
-	while(  ( index < MaxFracSymbolCount ) && ( str[index] >= '0' ) && ( str[index] <= '9' )  ) {
+	while(  ( index < strLengh ) &&
+			( index < MaxFracSymbolCount ) &&
+			( str[index] >= '0' ) &&
+			( str[index] <= '9' )  ) {
+
 		const uint8_t  didg = str[index] - '0';
 		sum += convTable[index][didg];
 		index++;
+
 	}
-	//sum += 0x01;
 
 	result = sum;
 
@@ -57,23 +61,29 @@ size_t fractionalToUint32( const char *str,  uint32_t& result ) {
 }
 
 
-size_t decimalToUint32( const char *str,  uint32_t& result, size_t maxDecSymCount, size_t minDecSymCount ) {
+static size_t decimalToUint32( const char *str, const size_t strLength, uint32_t& result, const size_t maxDecSymCount, const size_t minDecSymCount ) {
 	static constexpr const size_t   MaxDecimalSymbolCount = 10;
+	static const uint32_t MaxPow10 = 10;
+	static const uint32_t pow10[MaxPow10] = { 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000 };
+
 	size_t index = 0;
 	uint32_t sum = 0;
 	uint8_t digit = 0;
 
-	while(  asciiToDecimal( str[index], digit ) && index < MaxDecimalSymbolCount ) {
+	while(  ( index < strLength ) &&
+			( index < MaxDecimalSymbolCount ) &&
+			asciiToDecimal( str[index], digit ) ) {
+
 		if ( index < maxDecSymCount ) {
 			sum = sum * 10;
 			sum += digit;
 		}
+
 		index++;
 	}
 
-	while ( index < minDecSymCount ) {
-		sum = sum * 10;
-		index++;
+	if ( index < minDecSymCount ) {
+		sum *= pow10[ minDecSymCount - index  ];
 	}
 
 	result = sum;
@@ -81,26 +91,35 @@ size_t decimalToUint32( const char *str,  uint32_t& result, size_t maxDecSymCoun
 
 }
 
-
-size_t hexToUint32( const char *str,  uint32_t& result ) {
+size_t hexToUint32( const char *str, size_t strLength,  uint32_t& result ) {
 	static constexpr const size_t   MaxDecimalSymbolCount = 10;
 	size_t index = 0;
 	uint32_t sum = 0;
 	uint8_t digit = 0;
 
-	while(  asciiToNibble( str[index], digit ) && index < MaxDecimalSymbolCount ) {
+	while(  ( index < strLength ) &&
+			( index < MaxDecimalSymbolCount ) &&
+			asciiToNibble( str[index], digit )  ) {
 		sum <<= 4;
 		sum |= digit;
 		index++;
 	}
+
 	result = sum;
 	return index;
 }
 
-size_t asciiToFpFractional( const char *str,  bool& negative, uint32_t& decimal, uint32_t& fractional ) {
+static size_t asciiToFpFractional( const char *str, const size_t strLength, bool& negative, uint32_t& decimal, uint32_t& fractional ) {
+	static constexpr const char Space = ' ';
 	size_t offset = 0;
 	// Skip spaces
-	while( ' ' == str[offset] ) { offset++; };
+	while( ( offset < strLength ) &&
+		   ( Space == str[ offset ] ) ) {
+		offset++;
+	};
+
+	if ( strLength == offset ) return 0;
+
 	// Get sign
 	const char mayBeSign = str[offset];
 	if ( isSignSymbol( mayBeSign ) ) {
@@ -110,20 +129,23 @@ size_t asciiToFpFractional( const char *str,  bool& negative, uint32_t& decimal,
 		negative = false;
 	}
 
+	if ( strLength == offset ) return 0;
+
 	// Get decimal value
-	const size_t decimalSize = decimalToUint32( &str[offset], decimal );
+	const size_t decimalSize = decimalToUint32( &str[offset], (strLength - offset), decimal, 10, 0 );
 	offset += decimalSize;
 	if ( 0 == decimalSize ) decimal = 0;
 
 	// Get fractional value
-	const char mayBeDot = str[offset];
-	if ( isDotSymbol( mayBeDot ) ) {
+	if ( (offset < strLength) && isDotSymbol( str[offset] ) ) {
 		offset++;
-		const size_t fracSize = fractionalToUint32( &str[offset], fractional );
+		const size_t fracSize = fractionalToUint32( &str[offset], (strLength - offset), fractional );
 		offset += fracSize;
 		if  ( 0 == fracSize ) fractional = 0;
 		const size_t len = (( fracSize ) || (decimalSize)) ? offset : 0;
 		return len;
+	} else {
+		fractional = 0;
 	}
 
 	const size_t len = (decimalSize) ? offset : 0;
@@ -131,47 +153,55 @@ size_t asciiToFpFractional( const char *str,  bool& negative, uint32_t& decimal,
 }
 
 
-size_t asciiToFpDecimal( const char *str,  bool& negative, uint32_t& decimal, uint32_t& fractional, size_t maxFracSymCount = 9 ) {
-	static constexpr const char SymbolMinus = '-';
+static size_t asciiToFpDecimal( const char *str, const size_t strLength, bool& negative, uint32_t& decimal, uint32_t& fractional, size_t maxFracSymCount = 10 ) {
+	static constexpr const char Space = ' ';
 	size_t offset = 0;
 	// Skip spaces
-	while( ' ' == str[offset] ) { offset++; };
+	while( ( offset < strLength ) &&
+		   ( Space == str[ offset ] ) ) {
+		offset++;
+	};
+
+	if ( strLength == offset ) return 0;
 
 	// Get sign
 	const char mayBeSign = str[offset];
 	if ( isSignSymbol( mayBeSign ) ) {
-		negative = ( SymbolMinus == mayBeSign );
+		negative = ( '-' == mayBeSign );
 		offset++;
 	} else {
 		negative = false;
 	}
 
+	if ( strLength == offset ) return 0;
+
 	// Get decimal value
-	const size_t decimalSize = decimalToUint32( &str[offset], decimal );
+	const size_t decimalSize = decimalToUint32( &str[offset], (strLength - offset), decimal, 10, 0 );
 	offset += decimalSize;
 	if ( 0 == decimalSize ) decimal = 0;
 
 	// Get fractional value
-	const char mayBeDot = str[offset];
-	if ( isDotSymbol( mayBeDot ) ) {
+	if ( (offset < strLength) && isDotSymbol( str[offset] ) ) {
 		offset++;
-		const size_t fracSize = decimalToUint32( &str[offset], fractional, maxFracSymCount, maxFracSymCount );
+		const size_t fracSize = decimalToUint32( &str[offset], (strLength - offset), fractional, maxFracSymCount, maxFracSymCount );
 		offset += fracSize;
 		if  ( 0 == fracSize ) fractional = 0;
 		const size_t len = (( fracSize ) || (decimalSize)) ? offset : 0;
 		return len;
+	} else {
+		fractional = 0;
 	}
 
 	const size_t len = (decimalSize) ? offset : 0;
     return len;
 }
 
-size_t asciiToFixed( const char *str,  const uint8_t binDotPos, uint32_t& value ) {
+size_t asciiToFixed( const char *str, const size_t strLength,  const uint8_t binDotPos, uint32_t& value ) {
 	static const size_t BinDotPosMax = (sizeof(uint32_t) * 8);
 	uint32_t dec = 0, frac = 0;
-	bool neg;
+	bool neg = false;
 	if ( binDotPos > BinDotPosMax ) return 0;
- 	const size_t sz = asciiToFpFractional( str, neg, dec, frac );
+ 	const size_t sz = asciiToFpFractional( str, strLength, neg, dec, frac );
 	if ( 0 == sz ) return 0;
 	const uint32_t decValue = (dec << binDotPos);
 	const uint32_t fracValue = frac >> (32 - binDotPos);
@@ -180,13 +210,13 @@ size_t asciiToFixed( const char *str,  const uint8_t binDotPos, uint32_t& value 
 	return sz;
 }
 
-size_t asciiToDecimal( const char *str,  const uint8_t decDotPos, uint32_t& value ) {
+size_t asciiToDecimal( const char *str, const size_t strLength,  const uint8_t decDotPos, uint32_t& value ) {
 	static const uint32_t MaxPow10 = 10;
 	static const uint32_t pow10[MaxPow10] = { 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000 };
 	uint32_t dec = 0, frac = 0;
-	bool neg;
+	bool neg = false;
 	if ( decDotPos > ( MaxPow10 - 1) ) return 0;
-	const size_t sz = asciiToFpDecimal( str, neg, dec, frac,  decDotPos );
+	const size_t sz = asciiToFpDecimal( str, strLength, neg, dec, frac,  decDotPos );
 	if ( 0 == sz ) return 0;
 	const uint32_t decValue  = dec  * pow10[decDotPos];
 	const uint32_t fracValue = frac;
@@ -194,3 +224,5 @@ size_t asciiToDecimal( const char *str,  const uint8_t decDotPos, uint32_t& valu
 	value = neg ? (-result) : (result);
 	return sz;
 }
+
+
