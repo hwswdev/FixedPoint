@@ -66,12 +66,15 @@ bool sinCosTest(){
 		const uint64_t r1Q = ( static_cast<uint64_t>(sin1Q) + static_cast<uint64_t>(cos1Q) ) >> 1;
 		const uint64_t r2Q = ( static_cast<uint64_t>(sin2Q) + static_cast<uint64_t>(cos2Q) ) >> 1;
 
-		const uint64_t maxRValue = ( static_cast<uint64_t>(1) << 32 ) + 4;
+		const uint64_t maxRValue = ( static_cast<uint64_t>(1) << 32 ) + 1;
 		const uint64_t minRValue = ( static_cast<uint64_t>(1) << 32 ) - 6;
 
 		if ( ( minRValue > r1Q ) || ( maxRValue < r1Q  ) ||
 			 ( minRValue > r2Q ) || ( maxRValue < r2Q  ) ) {
-			// Here is radius error +3*LSB / -5*LSB
+			// Here is radius error +0*LSB / -5*LSB, sqrt(5) => 2.24
+			// i.e radius error is about 2.24*LSB
+			// But, multiply error is about -2 * LSB,
+			// because of sin / cos returns 31bit + sign, i.e. 31bit*31bit => (30bit)???.
 			asm("bkpt");
 			return false;
 		}
@@ -93,7 +96,7 @@ double calcRadiusError( uint32_t radius ) {
 	uint64_t minRq = 0xFFFFFFFFFFFFFFFFUL;
 	uint32_t count = 0;
 
-	for(uint32_t angle = 0; angle < 0xFFFFF000; angle += 0x100 ) {
+	for(uint32_t angle = 0; angle < 0xFFFFFE00; angle += 0x100 ) {
 
 		const int32_t sinR = rSinFixed( angle, radius );
 		const int32_t cosR = rCosFixed( angle, radius );
@@ -184,6 +187,13 @@ bool sinCosTestWithGeneric(){
 
 		if ( ( dAbsSinP > 1) || ( dAbsCosP > 1) ||
 			 ( dAbsSinN > 1) || ( dAbsCosN > 1) ) {
+			asm("bkpt");
+
+			const int32_t sinValPx = rSinFixed( angle, radius );
+			const int32_t cosValPx = rCosFixed( angle, radius );
+			const int32_t sinValNx = rSinFixed( angleN, radius );
+			const int32_t cosValNx = rCosFixed( angleN, radius );
+
 			asm("bkpt");
 			return false;
 		}

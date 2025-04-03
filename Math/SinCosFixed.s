@@ -147,8 +147,8 @@ cosFixed_0ToPi4:
 	umull r1, r3, r0, r0   // R3 <= R0 * R0, i.e X^2
 	mov r4, r3             // R4 <= X^2
 
-	mov r0, #0x00000000    // R0 <= '1.0' :-)
-	mov r5, #0x00000000    // R0 <= '1.0' :-)
+	mov r0, #0xFFFFFFFF    // R0 <= '1.0' :-)
+	mov r5, #0xFFFFFFFF    // R0 <= '1.0' :-)
 
 	// 0x9DE9E64D <= (PI/4) ^ 2
 	ldr r1, =#0x80000000   // ( 1 / 2 )
@@ -186,9 +186,6 @@ cosFixed_0ToPi4:
 	ldr r1, =#0x00000008   // ( 1 / 479001600 )
 	umlal r5, r0, r1, r4   // R0 <= 1 - 1/2 * X^2 + 1/24*X^4 - 1/720 * X^6 + 1/40320 * X^8 - 1/39916800 * X^10 + 1/479001600 * X^12
 
-	// COS value correction, because of 0xFFFFFFFF is maximum value of uint32_t
-	subs r1, r0, #1
-	//sbc  r0, r0, #0 // I will correct it outside of calculations
 
 	// 0.70710678119212389 <= 0xb504f334 <= COS(PI/4)
 	pop {r1-r5}
@@ -217,7 +214,6 @@ case_sin_000_125:
 case_sin_125_250:
   rsb r0, r0, #0x40000000 // (PI/2 - X)
   bl cosFixed_0ToPi4_Scaled
-  sbc  r0, r0, #0
   lsr r0, r0, #1
   pop  { r1, r2, lr }
   bx lr
@@ -225,7 +221,6 @@ case_sin_125_250:
 case_sin_250_375:
   sub r0, r0, #0x40000000 // ( X - PI/2 )
   bl cosFixed_0ToPi4_Scaled
-  sbc  r0, r0, #0
   lsr r0, r0, #1
   pop  { r1, r2, lr }
   bx lr
@@ -248,7 +243,6 @@ case_sin_500_625:
 case_sin_625_750:
   rsb r0, r0, #0xC0000000 // ( 3*PI/4 - X)
   bl cosFixed_0ToPi4_Scaled
-  sbc  r0, r0, #0
   lsr r0, r0, #1
   negs r0, r0
   pop  { r1, r2, lr }
@@ -257,7 +251,6 @@ case_sin_625_750:
 case_sin_750_875:
   sub r0, r0, #0xC0000000 // ( X - 3*PI/4 )
   bl cosFixed_0ToPi4_Scaled
-  sbc  r0, r0, #0
   lsr r0, r0, #1
   negs r0, r0
   pop  { r1, r2, lr }
@@ -292,8 +285,6 @@ sinFixedTBBTable:
 .byte ((case_sin_875_000 - case_sin_000_125 ) / 2)
 
 
-
-
 .align 4
 rCosFixed:
   add r0, r0, #0x40000000
@@ -315,10 +306,7 @@ case_rsin_000_125:
 case_rsin_125_250:
   rsb r0, r0, #0x40000000 // (PI/2 - X)
   bl cosFixed_0ToPi4_Scaled
-  mov r1, #0
-  ite cc // I thought it should be "ite cs" - (carry flag set)
-  movcc r0, r3
-  umullcs r1, r0, r3, r0
+  umull r1, r0, r3, r0
   adds r1, r1, #0x80000000 // Half of LSB
   adc r0, r0, #0
   pop  { r1-r3, lr }
@@ -327,10 +315,7 @@ case_rsin_125_250:
 case_rsin_250_375:
   sub r0, r0, #0x40000000 // ( X - PI/2 )
   bl cosFixed_0ToPi4_Scaled
-  mov r1, #0
-  ite cc // I thought it should be "ite cs" - (carry flag set)
-  movcc r0, r3
-  umullcs r1, r0, r3, r0
+  umull r1, r0, r3, r0
   adds r1, r1, #0x80000000 // Half of LSB
   adc r0, r0, #0
   pop  { r1-r3, lr }
@@ -358,10 +343,7 @@ case_rsin_500_625:
 case_rsin_625_750:
   rsb r0, r0, #0xC0000000 // ( 3*PI/4 - X)
   bl cosFixed_0ToPi4_Scaled
-  mov r1, #0
-  ite cc // I thought it should be "ite cs" - (carry flag set)
-  movcc r0, r3
-  umullcs r1, r0, r3, r0
+  umull r1, r0, r3, r0
   adds r1, r1, #0x80000000 // Half of LSB
   adc r0, r0, #0
   negs r0, r0
@@ -371,10 +353,7 @@ case_rsin_625_750:
 case_rsin_750_875:
   sub r0, r0, #0xC0000000 // ( X - 3*PI/4 )
   bl cosFixed_0ToPi4_Scaled
-  mov r1, #0
-  ite cc // I thought it should be "ite cs" - (carry flag set)
-  movcc r0, r3
-  umullcs r1, r0, r3, r0
+  umull r1, r0, r3, r0
   adds r1, r1, #0x80000000 // Half of LSB
   adc r0, r0, #0
   negs r0, r0
