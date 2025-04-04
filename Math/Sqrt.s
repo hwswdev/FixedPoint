@@ -58,16 +58,6 @@ getMsbLoopEnd:
 	pop {r1}
 	bx lr
 
-.type getMsbX, %function
-.align 4
-getMsbX:
-	push {lr}
-	bl getMsb
-	lsr r0, r0, #1
-	add r0, r0, #1
-	lsl r0, r0, #1
-	pop {lr}
-	bx lr
 
 .type getMsbY, %function
 .align 4
@@ -82,23 +72,41 @@ getMsbY:
 .type sqrt, %function
 .align 4
 sqrt_0_31:
-	push {r1-r3, lr}
+	push {r1-r4, lr}
 	mov r3, r0
-	bl getMsbX
-	sub r1, r0, #2
-	ldr r2, =#0x55555555  // 1/0x00000003
-	lsr r2, r2, r1		  // Divisor
-	mov r0, #1
-	lsl r0, r0, r1  	  // R0 <= ( 1 << MSB )
-    sub r0, r3, r0
-    umull r0, r1, r0, r2  // R1 <= dX
+	bl getMsb
 
+	// Calculate 1/dX value
+	sub r0, r0, #1
+	and r0, r0, #0xFFFFFFFE
+	ldr r2, =#0x55555555
+	lsr r2, r2, r0		   // R2 <= 1/dX
 
+	// Calculate X0 value
+	mov r1, #1
+	lsl r1, r1, r0         // R1 <= X0
+
+    // Calculate X - X0
+	sub r4, r3, r1 		   // R4 <= X - X0
+
+	// Calulate dY
+    mov r0, r3
+	bl getMsbY
+	sub r0, r0, #1
+	mov r1, #1
+	lsl r0, r1, r0 		   // R0 <= dY
+
+	mul r1, r4, r2 		   // R1 <= (X - X0) / dX
+	umull r1, r3, r1, r0   // R1 <= (X - X0) * dY
+	add r0, r3, r0
+
+	pop {r1-r4, lr}
+	bx lr
 
 	mov r1, r0, lsr #1
 	ldr r2, =#sqrt_0_31_table
 	ldr r0, [r2, r3, lsl #2 ]
-	pop {r1-r3, lr}
+	pop {r1-r4, lr}
 	bx lr
 
 
