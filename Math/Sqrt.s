@@ -32,6 +32,7 @@
 .thumb
 
 .global sqrtFixed
+.global getMsb
 .section .text
 
 .type getMsb, %function
@@ -49,17 +50,6 @@ getMsbLoop:
 getMsbLoopEnd:
 	pop {r1}
 	bx lr
-
-.type getMsbY, %function
-.align 4
-getMsbY:
-	push {lr}
-	bl getMsb
-	add r0, r0, #33
-	lsr r0, r0, #1
-	pop {lr}
-	bx lr
-
 
 .type sqrtFixed, %function
 .align 4
@@ -107,11 +97,19 @@ sqrtFixed:
 	add r2, r7, r3		  		// R2 <= Ymin + (X - Xmin) / (Xmax - Xmin) * (Ymax - Ymin)
 	mov r0, r2
 
+
+	mov r0, r8
+	sub r1, r9, #1
+	bl quad_correction_calc
+	adds r0, r2, r0
+	it cs
+	ldrcs r0, =#0xFFFB0000
+
 	// Linear error correction calc
-	mov r0, r5
-	mov r1, r9
-	bl sqrt_linear_err_calc
-	add r0, r2, r0				// R0 <= sqrt(x) * 65536
+	//mov r0, r5
+	//mov r1, r9
+	//bl sqrt_linear_err_calc
+	//add r0, r2, r0				// R0 <= sqrt(x) * 65536
 
 	// TO DO: recalculate
 sqrtFixedEnd:
@@ -126,6 +124,108 @@ sqrt_0_256:
 	bx lr
 */
 
+.global quad_dx_calc
+.type quad_dx_calc, %function
+.align 4
+quad_dx_calc:
+	push {r4-r6, lr}
+	lsr r0, r0, #3		// R0 <= X >> 3
+	ldr r4, =0x2F504F33	// 0.1848191738
+	rsb r5, r1, #32
+	lsr r4, r4, r5		// R4 <= R4 >> (32 - MSB), i.e HI(R4 << MSB)
+	subs r4, r0, r4		// R4 <= (X >> 3) - (0.1848191738 << MSB)
+	it cc
+	negscc r4, r4		// R4 <= abs(R4)
+	mov r6, #1			// R6 <= 1
+	subs r5, r1, #4
+	ite cc
+	movcc r6, #0			// R6 <= 0
+	lslcs r6, r6, r5	// R6 <= 1 << (MSB-4)
+	sub r0, r6, r4		// R0 <= ( 1 << (MSB-4)) - abs( (X >> 3) - (0.1848191738 << MSB) )
+	pop {r4-r6, lr}
+	bx lr
+
+.global quad_half_calc
+.type quad_half_calc, %function
+.align 4
+quad_half_calc:
+	push {r4-r5, lr}
+	mov r4, #3
+	subs r5, r1, #1
+	ite cc
+	movscc r0, #1
+	lslcs r0, r4, r5
+	pop {r4-r5, lr}
+	bx lr
+
+.global quad_correction_calc
+.type quad_correction_calc, %function
+.align 4
+quad_correction_calc:
+	push {r4-r9, lr}
+	mov r4, r0				// R4 <= X
+	bl quad_half_calc
+	sub r5, r4, r0			// R5 <= X - (Xmax + Xmin)/2,
+	mov r0, r4				// R0 <= X
+	bl quad_dx_calc			// R0 <= dXCorr, i.e shifted delta X
+	adds r5, r5, r0			// R5 <= (X - (Xmax + Xmin)/2) + dXCorr
+	it le
+	negsle r5, r5			// R5 <= abs(R5), i.e. abs( (X - (Xmax + Xmin)/2) + dXCorr )
+	rsbs r8, r1, #17
+	itte cc
+	negcc r8, r8
+	lsrcc  r5, r5, r8
+	lslcs  r5, r5, r8
+
+	cmp r5, #0x10000
+	it ge
+	ldrge r5, =#0xFFFF
+
+	umull r6, r7, r5, r5	// [R6,R7] <= ( Corrected(X) ^ 2 )
+	rsb r0, r6, #0xFFFFFFFF
+	ldr r6, =#quad_diff_table
+	ldr r7, [r6, r1, lsl #2]
+	umull r6, r7, r0, r7
+	mov r0, r7
+	pop {r4-r9, lr}
+	bx lr
+
+.align 4
+quad_diff_table:
+.word 0x0000048C // i,e.    0 << 16
+.word 0x0000066E // i,e.    0 << 16
+.word 0x00000918 // i,e.    0 << 16
+.word 0x00000CDD // i,e.    0 << 16
+.word 0x00001231 // i,e.    0 << 16
+.word 0x000019BA // i,e.    0 << 16
+.word 0x00002463 // i,e.    0 << 16
+.word 0x00003375 // i,e.    0 << 16
+.word 0x000048C6 // i,e.    0 << 16
+.word 0x000066EA // i,e.    0 << 16
+.word 0x0000918C // i,e.    0 << 16
+.word 0x0000CDD5 // i,e.    0 << 16
+.word 0x00012318 // i,e.    1 << 16
+.word 0x00019BAB // i,e.    1 << 16
+.word 0x00024630 // i,e.    2 << 16
+.word 0x00033756 // i,e.    3 << 16
+.word 0x00048C60 // i,e.    4 << 16
+.word 0x00066EAC // i,e.    6 << 16
+.word 0x000918C0 // i,e.    9 << 16
+.word 0x000CDD59 // i,e.   12 << 16
+.word 0x00123180 // i,e.   18 << 16
+.word 0x0019BAB3 // i,e.   25 << 16
+.word 0x00246300 // i,e.   36 << 16
+.word 0x00337566 // i,e.   51 << 16
+.word 0x0048C600 // i,e.   72 << 16
+.word 0x0066EACC // i,e.  102 << 16
+.word 0x00918C00 // i,e.  145 << 16
+.word 0x00CDD599 // i,e.  205 << 16
+.word 0x01231800 // i,e.  291 << 16
+.word 0x019BAB32 // i,e.  411 << 16
+.word 0x02463001 // i,e.  582 << 16
+.word 0x03375665 // i,e.  823 << 16
+.word 0x048C6001 // i,e. 1164 << 16
+
 
 .type sqrt_linear_err_calc, %function
 .align 4
@@ -137,7 +237,7 @@ sqrt_linear_err_calc:
 
 	lsl r5, r1, #(3+2)
 	and r5, r5, #0x20
-	ldr r6, =sqrt_err_approx_table0
+	ldr r6, =sqrt_err_approx_table
 	add r5, r6, r5
 
 	mov r6, #0
@@ -215,7 +315,7 @@ sqrt_linear_err_calc:
 	bx lr
 
 .align 4
-sqrt_err_approx_table0:
+sqrt_err_approx_table:
 // X0 = 0x100000000 (2^32)
 .word 0x34FBE4DD  // R1, i.e. R1 * rSinFixed( ( (X - X0)/dX ) / 2   ),   888923357
 .word 0x036544C2  // R2, i.e. R2 * rSinFixed( ( (X - X0)/dX ) * 1   ),   56968386
