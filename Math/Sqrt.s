@@ -195,14 +195,16 @@ quad_correction_calc:
 .type sqrt_iter_correction_calc, %function
 .align 4
 sqrt_iter_correction_calc:
+	// So, I have to think how to make this method.
+	// I think it I have error here.
 	push {r4-r8, lr}
 	// Error correction
-	cmp r1, #7	// Skip values lower 256
+	cmp r1, #7				// Skip values lower 256
 	bls skipIterations
 	// Get
 	tst r1, #1
 	ite ne
-	ldrne r7, =#0x000EEE1D // 14.930140 << 16
+	ldrne r7, =#0x000EEE1D // 14.930140 << 16 (on 2^33, i.e 7.xxx * 2 )
 	ldreq r7, =#0x000A8EA7 // 10.557250 << 16
 	lsr r6, r1, #1
 	rsb r6, r6, #16
@@ -213,7 +215,7 @@ nextItaration:
 	rsbs r5, r5, #0
 	bne lowerPartNotZero
 	cmp r6, r0
-	beq skipIterations
+	beq skipIterations4bit
 	rsb  r5, r5, #0
 	rsbs r5, r5, #0
 lowerPartNotZero:
@@ -227,6 +229,32 @@ lowerPartNotZero:
 	b nextItaration
 
 skipIterations:
+
+	// I think, I have to think. !!!!!!!!!!
+	// Something went wrong on realization, because of error about 4bit exists
+	// I don't know is it faster or slower then float sqrt(x)
+	// But initial approximation is good
+	// It is tempory FixUP maximum error value of (12 / (2^16) )
+	mov r7, #0x8
+nextItaration4bit:
+	umull r5, r6, r2, r2
+	rsbs r5, r5, #0
+	bne lowerPartNotZero4bit
+	cmp r6, r0
+	beq skipIterations4bit
+	rsb  r5, r5, #0
+	rsbs r5, r5, #0
+lowerPartNotZero4bit:
+	sbcs r6, r0, r6
+	ite cc
+	subcc r2, r2, r7
+	addcs r2, r2, r7
+	lsr r7, r7, #1
+	cmp r7, #0
+	beq skipIterations4bit
+	b nextItaration4bit
+
+skipIterations4bit:
 	mov r0, r2
 	pop {r4-r8, lr}
 	bx lr
