@@ -95,19 +95,22 @@ sqrtFixed:
 	add r2, r7, r3		  		// R2 <= Ymin + (X - Xmin) / (Xmax - Xmin) * (Ymax - Ymin)
 	mov r0, r2
 
+
 	// Correct sqrt value, using another approx
 	mov r0, r8
 	sub r1, r9, #1
 	bl quad_correction_calc
+
 	adds r2, r2, r0
 	it cs
 	ldrcs r2, =#0xFFFFFFFF
 	mov r0, r2
 
+
 	// Correcrt sqrt value using itaration
-	mov r0, r8
-	sub r1, r9, #1
-	bl sqrt_iter_correction_calc
+	//mov r0, r8
+	//sub r1, r9, #1
+	//bl sqrt_iter_correction_calc
 
 	pop {r1-r9, lr}
 	bx lr
@@ -119,26 +122,6 @@ sqrt_0_256:
 	bx lr
 
 
-.global quad_dx_calc
-.type quad_dx_calc, %function
-.align 4
-quad_dx_calc:
-	push {r4-r6, lr}
-	lsr r0, r0, #3		// R0 <= X >> 3
-	ldr r4, =0x2F504F33	// 0.1848191738
-	rsb r5, r1, #32
-	lsr r4, r4, r5		// R4 <= R4 >> (32 - MSB), i.e HI(R4 << MSB)
-	subs r4, r0, r4		// R4 <= (X >> 3) - (0.1848191738 << MSB)
-	it cc
-	negscc r4, r4		// R4 <= abs(R4)
-	mov r6, #1			// R6 <= 1
-	subs r5, r1, #4
-	ite cc
-	movcc r6, #0			// R6 <= 0
-	lslcs r6, r6, r5	// R6 <= 1 << (MSB-4)
-	sub r0, r6, r4		// R0 <= ( 1 << (MSB-4)) - abs( (X >> 3) - (0.1848191738 << MSB) )
-	pop {r4-r6, lr}
-	bx lr
 
 .global quad_half_calc
 .type quad_half_calc, %function
@@ -158,12 +141,44 @@ quad_half_calc:
 .align 4
 quad_correction_calc:
 	push {r4-r9, lr}
+
+	// Parable
+	rsbs r4, r1, #30		// Shift value to maximum
+	itte cc
+	negcc r4, r4
+	lsrcc r5, r0, r4
+	lslcs r5, r0, r4
+	rsbs r4, r5, #0x60000000 // Get difference between value and center
+	it cc
+	negcc r4, r4
+	umull r4, r5, r4, r4	//
+	rsbs r5, r5, #0x4000000
+	it cc
+	negcc r5, r5
+	cmp r5, #0x4000000
+	ite eq
+	moveq r5, #0xFFFFFFFF
+	lslne r5, r5, #6
+	// ( Xmid - XmaxVal ) * Parable
+	ldr r4, =#0x0AFB0CCC // 184224972.024 - i.e maximum x shift on 32-bit value
+	rsb r6, r1, #32
+	lsr r4, r4, r6
+	umull r4, r5, r4, r5	// Multiply maxumum error shifted by 16bit
+	adds r4, r4, #0x80000000
+	adc r6, r5, #0
+
+
+	// Quad corrected err approxymation parable
 	mov r4, r0				// R4 <= X
-	bl quad_half_calc
-	sub r5, r4, r0			// R5 <= X - (Xmax + Xmin)/2,
+	mov r7, #3
+	subs r5, r1, #1
+	ite cc
+	movscc r7, #1
+	lslcs r7, r7, r5
+
+	sub r5, r4, r7			// R5 <= X - (Xmax + Xmin)/2,
 	mov r0, r4				// R0 <= X
-	bl quad_dx_calc			// R0 <= dXCorr, i.e shifted delta X
-	adds r5, r5, r0			// R5 <= (X - (Xmax + Xmin)/2) + dXCorr
+	adds r5, r5, r6			// R5 <= (X - (Xmax + Xmin)/2) + dXCorr
 	it le
 	negsle r5, r5			// R5 <= abs(R5), i.e. abs( (X - (Xmax + Xmin)/2) + dXCorr )
 	rsbs r8, r1, #17
