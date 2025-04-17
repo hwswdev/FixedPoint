@@ -4,7 +4,7 @@
   <settings ppi="96">
     <identity>
       <id>3648ee5b-8731-4652-a5ad-2f1fbfde4025</id>
-      <revision>209</revision>
+      <revision>235</revision>
     </identity>
     <calculation>
       <precision>4</precision>
@@ -62,7 +62,7 @@
         </content>
       </text>
     </region>
-    <region left="18" top="90" width="432" height="51" color="#000000" fontSize="10">
+    <region left="18" top="90" width="437" height="38" color="#000000" fontSize="10">
       <math>
         <input>
           <e type="operand">x</e>
@@ -74,30 +74,40 @@
           <e type="operator" args="2">-</e>
           <e type="bracket">(</e>
           <e type="operand">2</e>
+          <e type="function" args="1">sqrt</e>
           <e type="operand">MSB</e>
-          <e type="operand">2</e>
-          <e type="operator" args="2">/</e>
           <e type="operator" args="1">-</e>
           <e type="operator" args="2">^</e>
           <e type="operator" args="2">*</e>
+          <e type="bracket">(</e>
           <e type="operand">x</e>
+          <e type="operand">2</e>
+          <e type="operand">MSB</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">-</e>
+          <e type="bracket">(</e>
           <e type="operator" args="2">*</e>
+          <e type="operand">2</e>
+          <e type="function" args="1">sqrt</e>
+          <e type="operand">MSB</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">+</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="522" top="135" width="131" height="28" color="#000000" fontSize="10">
+      <math>
+        <input>
           <e type="operand">2</e>
           <e type="function" args="1">sqrt</e>
           <e type="operand">1</e>
           <e type="operator" args="2">-</e>
           <e type="bracket">(</e>
-          <e type="operand">2</e>
-          <e type="operand">MSB</e>
-          <e type="operand">1</e>
-          <e type="operator" args="2">+</e>
-          <e type="operand">2</e>
-          <e type="operator" args="2">/</e>
-          <e type="operator" args="2">^</e>
-          <e type="operator" args="2">*</e>
-          <e type="operator" args="2">+</e>
-          <e type="operator" args="2">:</e>
         </input>
+        <result action="numeric">
+          <e type="operand">0.4142</e>
+        </result>
       </math>
     </region>
     <region left="18" top="144" width="296" height="42" color="#ff0000" fontSize="10">
@@ -119,7 +129,7 @@
         </regions>
       </text>
     </region>
-    <region left="18" top="189" width="300" height="29" color="#ff0000" fontSize="10">
+    <region left="18" top="189" width="283" height="29" color="#000000" fontSize="10">
       <text lang="eng" fontFamily="Arial" fontSize="10">
         <content>
           <p>
@@ -129,7 +139,7 @@
             <span style="color: #ff0000;"> </span>\[REGION[1559fbd31d5a43d5a4e5ed14c9044c98]]\</p>
         </content>
         <regions>
-          <region id="1559fbd31d5a43d5a4e5ed14c9044c98" left="212" top="0" width="83" height="28" color="#000000" fontSize="10">
+          <region id="1559fbd31d5a43d5a4e5ed14c9044c98" left="212" top="0" width="66" height="28" color="#000000" fontSize="10">
             <math>
               <input>
                 <e type="operand">2</e>
@@ -137,8 +147,6 @@
                 <e type="operand">1</e>
                 <e type="operator" args="2">-</e>
                 <e type="bracket">(</e>
-                <e type="operand">2</e>
-                <e type="operator" args="2">*</e>
               </input>
             </math>
           </region>
@@ -262,16 +270,16 @@
         </result>
       </math>
     </region>
-    <region left="18" top="387" width="211" height="42" color="#ff0000" fontSize="10">
+    <region left="18" top="387" width="299" height="42" color="#000000" fontSize="10">
       <text lang="eng" fontFamily="Arial" fontSize="10">
         <content>
           <p>
-            <span style="font-weight: bold;">0x3A827999,</span>
+            <span style="font-weight: bold;">0xBA827999, 0.728553391,</span>
             <span style="font-weight: bold; color: #ff0000;"> i.e</span>
             <span style="font-weight: bold;"> </span>\[REGION[c5df611877c348e5b65dbbad9ece0062]]\</p>
         </content>
         <regions>
-          <region id="c5df611877c348e5b65dbbad9ece0062" left="104" top="0" width="102" height="41" color="#000000" fontSize="10">
+          <region id="c5df611877c348e5b65dbbad9ece0062" left="192" top="0" width="102" height="41" color="#000000" fontSize="10">
             <math>
               <input>
                 <e type="operand">1.457106781</e>
@@ -283,7 +291,7 @@
         </regions>
       </text>
     </region>
-    <region left="279" top="396" width="193" height="23" color="#000000" fontSize="10">
+    <region left="342" top="396" width="193" height="23" color="#000000" fontSize="10">
       <text lang="eng" fontFamily="Arial" fontSize="10">
         <content>
           <p>
@@ -299,10 +307,10 @@
         </content>
       </text>
     </region>
-    <region left="522" top="432" width="143" height="23" color="#ff0000" fontSize="10">
+    <region left="522" top="432" width="142" height="23" color="#ff0000" fontSize="10">
       <text lang="eng" fontFamily="Arial" fontSize="10">
         <content>
-          <p style="font-weight: bold; color: #ff0000;">It s is not symmetric</p>
+          <p style="font-weight: bold; color: #ff0000;">It's is not symmetric</p>
         </content>
       </text>
     </region>
@@ -442,9 +450,9 @@
           <e type="operator" args="2">-</e>
           <e type="bracket">(</e>
           <e type="operand">1</e>
+          <e type="operand">x</e>
           <e type="operand">MSB</e>
           <e type="function" args="1">Xmid</e>
-          <e type="operand">x</e>
           <e type="operator" args="2">-</e>
           <e type="operand">2</e>
           <e type="operand">MSB</e>
@@ -505,7 +513,7 @@
         </content>
       </text>
     </region>
-    <region left="18" top="855" width="549" height="65" color="#000000" fontSize="10">
+    <region left="18" top="855" width="532" height="65" color="#000000" fontSize="10">
       <math>
         <input>
           <e type="operand">x</e>
@@ -514,7 +522,6 @@
           <e type="operand">MSB</e>
           <e type="function" args="1">MaxErr</e>
           <e type="operand">1</e>
-          <e type="operand">2</e>
           <e type="operand">x</e>
           <e type="operand">MSB</e>
           <e type="function" args="1">Xmid</e>
@@ -525,9 +532,10 @@
           <e type="operator" args="2">+</e>
           <e type="operand">2</e>
           <e type="operand">MSB</e>
+          <e type="operand">1</e>
+          <e type="operator" args="2">-</e>
           <e type="operator" args="2">^</e>
           <e type="operator" args="2">/</e>
-          <e type="operator" args="2">*</e>
           <e type="bracket">(</e>
           <e type="operand">2</e>
           <e type="operator" args="2">^</e>
@@ -545,7 +553,7 @@
         </content>
       </text>
     </region>
-    <region left="18" top="927" width="549" height="65" color="#000000" fontSize="10">
+    <region left="18" top="927" width="532" height="65" color="#000000" fontSize="10">
       <math>
         <input>
           <e type="operand">x</e>
@@ -554,7 +562,6 @@
           <e type="operand">MSB</e>
           <e type="function" args="1">MaxErr</e>
           <e type="operand">1</e>
-          <e type="operand">2</e>
           <e type="operand">x</e>
           <e type="operand">MSB</e>
           <e type="function" args="1">Xmid</e>
@@ -565,9 +572,10 @@
           <e type="operator" args="2">+</e>
           <e type="operand">2</e>
           <e type="operand">MSB</e>
+          <e type="operand">1</e>
+          <e type="operator" args="2">-</e>
           <e type="operator" args="2">^</e>
           <e type="operator" args="2">/</e>
-          <e type="operator" args="2">*</e>
           <e type="bracket">(</e>
           <e type="operand">2</e>
           <e type="operator" args="2">^</e>
@@ -884,7 +892,7 @@
       </text>
     </region>
     <region left="90" top="1512" width="579" height="402" color="#000000" fontSize="10">
-      <plot type="2d" render="lines" scale_x="50.8597168618237" scale_y="0.000768889375607117" scale_z="0.323545111803218" rotate_x="0" rotate_y="0" rotate_z="0" transpose_x="-656" transpose_y="-18" transpose_z="0">
+      <plot type="2d" render="lines" scale_x="34.5579385949335" scale_y="0.000595160758157243" scale_z="0.196832076374026" rotate_x="0" rotate_y="0" rotate_z="0" transpose_x="-571" transpose_y="-3" transpose_z="0">
         <input>
           <e type="operand">ErrN</e>
           <e type="operand">ErrL</e>
@@ -903,7 +911,7 @@
       </text>
     </region>
     <region left="81" top="2025" width="579" height="402" color="#000000" fontSize="10">
-      <plot type="2d" render="lines" scale_x="6.47486297481832" scale_y="0.000768889375607117" scale_z="0.0411899710489853" rotate_x="0" rotate_y="0" rotate_z="0" transpose_x="-634" transpose_y="-102" transpose_z="0">
+      <plot type="2d" render="lines" scale_x="5.85575001256388" scale_y="0.000796283492641374" scale_z="0.037251471486834" rotate_x="0" rotate_y="0" rotate_z="0" transpose_x="-676" transpose_y="-90" transpose_z="0">
         <input>
           <e type="operand">LinearErr</e>
           <e type="operand">ErrApproxNc</e>
@@ -916,7 +924,7 @@
       </plot>
     </region>
     <region left="72" top="2520" width="579" height="402" color="#000000" fontSize="10">
-      <plot type="2d" render="lines" scale_x="6.47486297481832" scale_y="0.000768889375607117" scale_z="0.0411899710489853" rotate_x="0" rotate_y="0" rotate_z="0" transpose_x="-629" transpose_y="-104" transpose_z="0">
+      <plot type="2d" render="lines" scale_x="6.47486297481832" scale_y="0.000768889375607117" scale_z="0.0411899710489853" rotate_x="0" rotate_y="0" rotate_z="0" transpose_x="-649" transpose_y="-149" transpose_z="0">
         <input>
           <e type="operand">LinearErr</e>
           <e type="operand">ErrApproxLc</e>
@@ -928,15 +936,15 @@
         </input>
       </plot>
     </region>
-    <region left="36" top="3006" width="293" height="23" color="#ff0000" fontSize="10">
+    <region left="36" top="3015" width="293" height="23" color="#ff0000" fontSize="10">
       <text lang="eng" fontFamily="Arial" fontSize="10">
         <content>
           <p style="font-weight: bold; color: #ff0000;">So, here you can see parable, quad arg shift</p>
         </content>
       </text>
     </region>
-    <region left="36" top="3024" width="579" height="402" color="#000000" fontSize="10">
-      <plot type="2d" render="lines" scale_x="6.47486297481832" scale_y="0.000768889375607117" scale_z="0.0411899710489853" rotate_x="0" rotate_y="0" rotate_z="0" transpose_x="-634" transpose_y="-102" transpose_z="0">
+    <region left="36" top="3033" width="579" height="402" color="#000000" fontSize="10">
+      <plot type="2d" render="lines" scale_x="6.47486297481832" scale_y="0.000768889375607117" scale_z="0.0411899710489853" rotate_x="0" rotate_y="0" rotate_z="0" transpose_x="-656" transpose_y="-110" transpose_z="0">
         <input>
           <e type="operand">LinearErr</e>
           <e type="operand">ErrApproxQc</e>
@@ -948,7 +956,7 @@
         </input>
       </plot>
     </region>
-    <region left="36" top="3546" width="75" height="23" color="#ff0000" fontSize="10">
+    <region left="36" top="3555" width="75" height="23" color="#ff0000" fontSize="10">
       <text lang="eng" fontFamily="Arial" fontSize="10">
         <content>
           <p>
@@ -958,14 +966,14 @@
         </content>
       </text>
     </region>
-    <region left="36" top="3564" width="210" height="23" color="#ff0000" fontSize="10" isBreakable="false">
+    <region left="36" top="3573" width="210" height="23" color="#ff0000" fontSize="10" isBreakable="false">
       <text lang="eng" width="209" fontFamily="Arial" fontSize="10">
         <content>
           <p style="font-weight: bold; color: #ff0000;">Evgeny Sobolev,09.02.1984y.b.</p>
         </content>
       </text>
     </region>
-    <region left="36" top="3582" width="181" height="23" color="#ff0000" fontSize="10" isBreakable="false">
+    <region left="36" top="3591" width="181" height="23" color="#ff0000" fontSize="10" isBreakable="false">
       <text lang="eng" fontFamily="Arial" fontSize="10">
         <content>
           <p style="font-weight: bold; color: #ff0000;">76 1375783, +79003030374</p>
