@@ -23,6 +23,8 @@ uint8_t getMsb( const uint32_t val ) {
 	return bitCount;
 }
 
+static double gMaxLinearErr[32] = {0};
+
 double sqrtLinearApprox( const uint32_t val ) {
 	const uint8_t msb = getMsb(val) - 1;
 	const uint32_t X0 = static_cast<uint32_t>(1) << msb;
@@ -33,31 +35,30 @@ double sqrtLinearApprox( const uint32_t val ) {
 	return res;
 }
 
-double sqrtErrorApprox( const uint32_t val ) {
-	static const double LinearErr[32] = {
-		0.025126265847083,
-		0.035533905932737,
-		0.050252531694166,
-		0.071067811865475,
-		0.100505063388334,
-		0.142135623730949,
-		0.201010126776668,
-		0.284271247461899,
-		0.402020253553336,
-		0.568542494923798,
-		0.804040507106672,
-		1.1370849898476,
-		1.60808101421334,
-		2.27416997969519,
-		3.21616202842669,
-		4.54833995939038,
-		6.43232405685337
-	};
+static double calcMaxLinearErr( const uint8_t msb ) {
 	static const double div = ( sqrt(2.0) - 1 ) * ( sqrt(2.0) - 1 );
-	const uint8_t msb = getMsb( val ) - 1;
+	static const double mul = 1 / div;
+	static const double sqrtTwo = sqrt(2.0);
+	static const double sqrtTwoMinusOne = sqrtTwo - 1.0;
+	const double xMax = static_cast<double>( static_cast<uint32_t>(1) << (msb - 2) ) * mul;
+	const double dY = sqrt(xMax) - sqrtLinearApprox(static_cast<uint32_t>(xMax) );
+	return dY;	
+}
 
-	const double xMid = (static_cast<uint64_t>(3) << (msb - 1));
-	const double xMax = static_cast<double>( static_cast<uint64_t>(1) << (msb - 2) ) / div;
+void sqrtInit() {
+	for(uint32_t msb = 2; msb < 32; msb++) {
+		double dY = calcMaxLinearErr(msb);
+		gMaxLinearErr[msb] = dY;
+	}
+}
+
+
+double sqrtErrorApprox( const uint32_t val ) {
+	static const double div = ( sqrt(2.0) - 1 ) * ( sqrt(2.0) - 1 );
+	static const double mul = 1 / div;
+	const uint8_t msb = getMsb( val ) - 1;
+	const double xMid = (static_cast<uint32_t>(3) << (msb - 1));
+	const double xMax = static_cast<double>( static_cast<uint32_t>(1) << (msb - 2) ) * mul;
 	const double deltaX = xMid - xMax;
 	const double x = val;
 	const double a = x - xMid;
@@ -65,31 +66,37 @@ double sqrtErrorApprox( const uint32_t val ) {
 	const double c = a / b;
 	const double d = c * c;
 	const double e = 1.0 - d;
-
 	const double xDiff = deltaX * e;
 	const double corrX = a + xDiff;
-	const double f = corrX / ( static_cast<uint64_t>(1) << (msb - 1) );
+	const double f = corrX / ( static_cast<uint32_t>(1) << (msb - 1) );
 	const double g =  f * f;
 	const double h = 1.0 - g;
-	const double quadErr = LinearErr[msb] * h;
+	const double quadErr = gMaxLinearErr[msb] * h;
 
 	return quadErr;
 }
 
+
 double sqrtX( const uint32_t val ) {
+
+	static bool initilized = false;
+	if (!initilized) {
+		sqrtInit();
+		initilized = true;
+	}
+
 	const double linear = sqrtLinearApprox( val );
 	const double quad = sqrtErrorApprox( val );
 	const double res = linear + quad;
 	return res;
 }
 
-
 int main (int argc, char argv[]){
 
 	double maxPositiveError = 0.0;
 	double maxNegativeError = 0.0;
 
-	for(uint32_t x = 4; x < 65536; x++ ) {
+	for(uint32_t x = 16; x < 65536; x++ ) {
 		const double valCalc = sqrtX(x);
 		const double valOrig = sqrt(static_cast<double>(x));
 		const double err = valCalc - valOrig;
