@@ -25,8 +25,7 @@
   * @description  65535.9999847 =>  0xFFFFFFFF
   *
   * @description  Not iterative sqrt(x) approxymation
-  * @description  Accuracy is about +0.011 / -6.270 as approx value
-  * @description  So, I think next approx correction will gave accuracy about 0.2
+  * @description  Accuracy is about +/-0.2
   * @description  God, thank you of your help.
   * 
   *******************************************************************************************/
@@ -120,6 +119,52 @@ inline uint32_t getSqrtLinearApprox( uint32_t x, uint8_t argBitCount ) {
 	return approx;
 }
 
+
+inline uint32_t getQuadCorr( uint32_t x, uint8_t argBitCount ) {
+	// Constants
+	static const double xValOnMaxErrorF = 1.0 / ( 4.0 * ( sqrt(2.0) - 1.0 ) * ( sqrt(2.0) - 1.0 ) );
+	static const double xValOnStartF = 1.0;	
+	static const double xMaxErrLF = xValOnMaxErrorF - xValOnStartF;
+	static const double xMaxErrRF = xValOnStartF * 2.0 - xValOnMaxErrorF;
+	static const double OneDivMaxErrLF = 1.0 / xMaxErrLF;
+	static const double OneDivMaxErrRF = 1.0 / xMaxErrRF;
+	static const double kCorr32FL = ((4.5 * sqrt(2.0)) * (1 << 16));
+	static const double kCorr31FL = ((4.5 ) * (1 << 16));
+	static const double kCorr32FR = ((4.1 * sqrt(2.0)) * (1 << 16));
+	static const double kCorr31FR = ((4.1) * (1 << 16));
+
+	static const uint32_t xMaxErrL = xMaxErrLF * ( static_cast<uint64_t>(1) << (32) );
+	static const uint32_t xMaxErrR = xMaxErrRF * ( static_cast<uint64_t>(1) << (32) );
+	static const uint32_t OneDivMaxErrL = OneDivMaxErrLF * ( static_cast<uint64_t>(1) << (30) );
+	static const uint32_t OneDivMaxErrR = OneDivMaxErrRF * ( static_cast<uint64_t>(1) << (30) );
+	static const uint32_t kCorrL[2] = { kCorr32FL, kCorr31FL };
+	static const uint32_t kCorrR[2] = { kCorr32FR, kCorr31FR };
+
+
+	// Calculate X axis value
+	register const uint8_t bitCntToMax = 32 - argBitCount;
+	register const uint32_t xShiftMax = ( x << ( bitCntToMax + 1 ) );
+ 	register const uint32_t xCorrScale = ( xShiftMax < xMaxErrL ) ? OneDivMaxErrL : OneDivMaxErrR;
+	register const uint32_t xDiff = ( xShiftMax < xMaxErrL ) ? (xMaxErrL - xShiftMax) : ( xShiftMax - xMaxErrL);
+	register const uint32_t qArgScaled = mulab( xDiff, xCorrScale );
+	register const uint32_t qArg = qArgScaled << 2;
+	register const uint32_t quad = mulab(qArg, qArg);
+	register const uint32_t oneMinusQuad = 0xFFFFFFFF - quad;
+
+	register const uint32_t halfDxScaled = (oneMinusQuad < 0x80000000) ?  (0x80000000 - oneMinusQuad) : (oneMinusQuad - 0x80000000);
+	register const uint32_t halfDx = halfDxScaled << 1;
+	register const uint32_t coorParable = mulab( halfDx, halfDx );
+	register const uint32_t corrInvParable = 0xFFFFFFFF - coorParable;
+
+	register const uint32_t kKorrScaled = ( xShiftMax < xMaxErrL ) ? kCorrL[ argBitCount &0x01 ] : kCorrR[ argBitCount &0x01 ];
+	register const uint32_t kShift = bitCntToMax >> 1;
+	register const uint32_t kKorr = kKorrScaled >> kShift;
+	register const uint32_t korrScaled = mulab(kKorr, corrInvParable);
+
+	return korrScaled;
+}
+
+
 uint32_t sqrtFixed( uint32_t x ) {
 	// Skip zero value
 	if ( 0 == x ) return 0;
@@ -127,7 +172,9 @@ uint32_t sqrtFixed( uint32_t x ) {
 	register const uint8_t argBitCount = getMsb( x );
 	register const uint32_t sqrtLinearApprox = getSqrtLinearApprox(x, argBitCount);
 	register const uint32_t sqrtSqrErrApprox = getSqrCorrY(x, argBitCount);
-	register const uint32_t sqrtVal = sqrtLinearApprox + sqrtSqrErrApprox;
+	register const uint32_t sqrtSqrApproxVal = sqrtLinearApprox + sqrtSqrErrApprox;
+	register const uint32_t sqrtQuadCorr = getQuadCorr(x, argBitCount);
+	register const uint32_t sqrtVal = sqrtSqrApproxVal + sqrtQuadCorr;
 	// Get doubled from integer
 	return sqrtVal;
 }
@@ -143,11 +190,10 @@ int main (int argc, char argv[]){
 	double maxPositiveError = 0.0;
 	double maxNegativeError = 0.0;
 
-
 	for ( uint32_t lsb = 0; lsb <= 16; lsb++ ) { 
 
 		for(uint32_t x = 0; x < 65536; x++ ) {
-			const uint32_t xQuad = x << lsb;
+			const uint32_t xQuad = (x << lsb);
 			const double valCalc = sqrtX( xQuad );
 			const double valOrig = sqrt( static_cast<double>(xQuad) );
 			const double err = valCalc - valOrig;
