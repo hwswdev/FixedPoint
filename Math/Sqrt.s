@@ -33,176 +33,133 @@
 .thumb
 
 .global sqrtFixed
-.global getMsb
-.section .text
-
-.type getMsb, %function
-.align 4
-getMsb:
-	push {r1}
-	mov r1, r0
-	mov r0, #32
-getMsbLoop:
-    lsls r1, #1
-    bcs getMsbLoopEnd
-    sub r0, r0, #1
-    cmp r0, #0
-	bne getMsbLoop
-getMsbLoopEnd:
-	pop {r1}
-	bx lr
-
 .type sqrtFixed, %function
 .align 4
 sqrtFixed:
-	push {r1-r9, lr}
+	push { r4-r9, lr }
+	// Check if zero, don't calculate
+	cmp r0, #0
+	beq sqrtFixedEnd
 
-	// Check if square root if value 0..256
-	// It is faster, but can be removed
-	cmp r0, #16
-	bls sqrt_0_16
+	// Get total bit count of X value
+	mov r4, r0
+	mov r8, #32
+sqrtCalcMsbLoop:
+    lsls r4, r4, #1
+    bcs sqrtCalcMsbLoopExit
+	subs r8, r8, #1
+    bne sqrtCalcMsbLoop
+sqrtCalcMsbLoopExit:
 
-	// Generic calculations
-	mov r8, r0
-	bl getMsb
-	mov r9, r0
+	// Now R0 <= X, R8 <= MSB, i.e. most significant bit set on value
+	// **************************************************
+	// Calculate linear approxymation
+	// **************************************************
+	rsb r7, r8, #32
+	add r6, r7, #1
+	lsl r9, r0, r6			// R9 <= X << (ToMaxVal+1)
+	tst r8, #1
+	ittee eq
+	ldreq r6, =0xb504f333	// Y0_32bit
+	ldreq r5, =0x4afb0ccc	// dY_32bit
+	ldrne r6, =0x80000000   // Y0_31bit
+	ldrne r5, =0x3504f333   // dY_31bit
+	umull r4, r5, r9, r5	// R5 <= (dY * X - X0) << MAX
+	add r4, r5, r6			// R4 now is linear approxymation of SQRT(x) << MAX
+	lsr r6, r7, #1			// Calculate result shift	Shift = 16 - MaxBitCount / 2
+	lsr r6, r4, r6			// R6 <= Result of linear approxymation
 
-	mov r1, #1
-	lsl r1, r1, r9				// Xmin
-
-	sub r5, r9, #2
-	mov r2, #0x80000000
-	lsr r2, r5					// 1/(Xmax-Xmin)
-
-	tst r9, #1
-	ite ne
-	ldrne r4, =#0x6A09E668		// (Ymax - Ymin), it depends on sqrt(2) >> MSB, or 2 >> MSB
-	ldreq r4, =#0x4AFB0CCC		// (Ymax - Ymin), it depends on sqrt(2) >> MSB, or 2 >> MSB
-	lsr r5, r9, #1
-	rsb r5, r5, #16
-	lsr r4, r4, r5
-
-	tst r9, #1
-	itte ne
-	ldrne r3, =#0x80000000		// Ymin
-	subne r5, r5, #1			// Ymin, correct shift value, cause can't load 0x100000000
-	ldreq r3, =#0xB504F334		// Ymin
-	lsr r3, r3, r5
-
-	sub r5, r8, r1        		// R5 <= X - Xmin
-	mul r5, r5, r2  	  		// R5 <= (X - Xmin) / (Xmax - Xmin)
-	umull r6, r7, r5, r4  		// R7 <= (X - Xmin) / (Xmax - Xmin) * (Ymax - Ymin)
-	add r2, r7, r3		  		// R2 <= Ymin + (X - Xmin) / (Xmax - Xmin) * (Ymax - Ymin)
-	mov r0, r2
-
-	// Correct sqrt value, using another approx
-	mov r0, r8
-	sub r1, r9, #1
-	bl quad_correction_calc
-	adds r2, r2, r0
-	mov r0, r2
-
-	// Correcrt sqrt value using itaration
-	//mov r0, r8
-	//sub r1, r9, #1
-	//bl sqrt_iter_correction_calc
-
-	pop {r1-r9, lr}
-	bx lr
-
-sqrt_0_16:
-	ldr r2, =#sqrt_0_16_table
-	ldr r0, [r2, r0, lsl #2 ]
-	pop {r1-r9, lr}
-	bx lr
-
-
-.global quad_correction_calc
-.type quad_correction_calc, %function
-.align 4
-quad_correction_calc:
-	push {r4-r7, lr}
-
-	// Parable
-	rsbs r4, r1, #30		// Shift value to maximum
-	itte cc
-	negcc r4, r4
-	lsrcc r5, r0, r4
-	lslcs r5, r0, r4
-	mov r7, r5				 	// Shifted to maxumum value
-	rsbs r4, r5, #0x60000000 	// Get difference between value and center
-	it cc
-	negcc r4, r4
-	lsl r4, r4, #2
+	// **************************************************
+	// Calculate quad correction
+	// **************************************************
+	// Calculate X-shift offset parable
+	mov r4, r9
+	tst r4, #0x80000000
+	it eq
+	rsbeq r4, r4, #0xFFFFFFFF
+	sub r4, r4, #0x80000000
+	lsl r4, r4, #1
 	umull r4, r5, r4, r4
-	rsbs r5, r5, #0x40000000
-	it cc
-	negcc r5, r5
-	cmp r5, #0x40000000
-	ite eq
-	moveq r5, #0xFFFFFFFF
-	lslne r5, r5, #2
-	// ( Xmid - XmaxVal ) * Parable
-	ldr r4, =#0xAFB0CCC0 		// 184224972.024 * 2^4 - i.e maximum x shift on 32-bit value
-	rsb r6, r1, #32
-	lsr r4, r4, r6				// Error is 184224972 / (2 ^ BitCount-32)
-	umull r4, r5, r4, r5		// Multiply maxumum error shifted by 16bit
-	adds r4, r4, #0x80000000
-	adc r5, r5, #0				// Compensate multiply error
-	lsr r6, r5, #4				// (0xAFB0CCC << 4, i.e *2^4), have to shift back to there original value
-
-
-	// Quad corrected err approxymation parable
-	rsbs r4, r1, #30			// Shift value to correction
-	itte cc
-	negcc r4, r4				// R4 <= abs(R4)
-	lsrcc r5, r6, r4		 	// R5 <= (R6) >> abs(R4), R4 = 30 - R1
-	lslcs r5, r6, r4		 	// R5 <= (R6) << abs(R4), R4 = 30 - R1
-	add r5, r5, r7			 	// R4 <= Shifted to maxumum value + correction
-	rsbs r4, r5, #0x60000000 	// Get difference between corrected X value and center
-	it cc
-	negcc r4, r4
-	lsl r4, r4, #2
+	rsb r4, r5, #0xFFFFFFFF
+	// Get X-shift scaled parable value
+	ldr r5, =#0x57d86660	// Maximum X correction shifted by 4 bit's
+	umull r4, r5, r4, r5	// R5 <= X correction shifted by 4bit's and by max bits
+	lsr r4, r5, r7			// R4 <= X correction shifted by 4bit's
+	lsr r4, r4, #4			// R4 <= X correction value
+	// Shift X value, to get max sacled parable
+	add r4, r4, r0			// R4 <= X + Xcorrection
+	add r5, r7, #1
+	lsl r4, r4, r5			// R4 <= (X + Xcorrection) << (ToMaxVal+1)
+	// Now, X-corection applied
+	// Calculate Y correction parable, based on corrected X-value
+	tst r4, #0x80000000
+	it eq
+	rsbeq r4, r4, #0xFFFFFFFF
+	sub r4, r4, #0x80000000
+	lsl r4, r4, #1
 	umull r4, r5, r4, r4
-	rsbs r5, r5, #0x40000000
-	it cc
-	negcc r5, r5
-	cmp r5, #0x40000000
+	rsb r4, r5, #0xFFFFFFFF
+	// Get Y-scale value, depend on sqrt(2) or (2) is scale factor
+	tst r8, #0x01
 	ite eq
-	moveq r5, #0xFFFFFFFF
-	lslne r5, r5, #2
+	ldreq r5, =#1726663841	// CorrY * 2 << N
+	ldrne r5, =#1220935711	// CorrY * sqrt(2) << N
+	umull r4, r5, r4, r5
+	lsr r4, r7, #1
+	lsr r4, r5, r4
+	lsr r4, r4, #5
+	add r6, r4, r6			// R6 <= Result of quad approxymation
 
-	tst r1, #1
-	ite ne
-	ldrne r7, =#0x66EACCA0		// Maximum difference beetween linear approx of sqrt, and real value  sqrt(2) << N or 2 << N
-	ldreq r7, =#0x48C60010		// Maximum difference beetween linear approx of sqrt, and real valuee sqrt(2) << N or 2 << N
-	lsr r6, r1, #1
-	rsb r6, r6, #16
-	lsr r7, r7, r6
-	umull r6, r7, r5, r7
-	lsr r0, r7, #4
-
-	pop {r4-r7, lr}
+	// **************************************************
+	// Calculate double parable correction
+	// **************************************************
+	// R9 is now not corrected, but scaled parable value
+	ldr r5, = #0x7504f333	// X-value, where is maximum of quad error correction
+	cmp r9, r5				// Xcorrection central point
+	ittee ls
+	subls r4, r5, r9		// R4 <= value to calculate parable
+	ldrls r5, =#0x8c02d41d	// R5 <= Scale of parable, left side
+	subhi r4, r9, r5		// R4 <= value to calculate parable
+	ldrhi r5, =#0x75e30c0c	// R5 <= Scale of parable, right side
+	umull r4, r5, r4, r5	// R5 <= Scaled parable argument value (shifted by 2)
+	lsl r4, r5, #2			// R4 <= Scaled parable argument value
+	// So, now I can calculate parable value
+	umull r4, r5, r4, r4	// R5 <= parable value
+	rsb r4, r5, #0xFFFFFFFF	// R4 <= inverse parable value of X-value
+	// So, now I have to calculate Y-parable, based on X-value
+	// But it's the same as before
+	tst r4, #0x80000000
+	it eq
+	rsbeq r4, r4, #0xFFFFFFFF
+	sub r4, r4, #0x80000000
+	lsl r4, r4, #1
+	umull r4, r5, r4, r4
+	rsb r4, r5, #0xFFFFFFFF
+	// So, now I have to multiply by Scale factor.
+	and r7, r8, #1	// R7 <= index of Factor << N, or Factor * sqrt(2) << N
+	ldr r5, =#0x7504f333
+	cmp r9, r5
+	ite hi
+	addhi r5, r7, #2
+	movls r5, r7
+	ldr r7, =sqrtDoubleParableScale
+	ldr r5, [ r7, r5, lsl 2 ]
+	umull r4, r5, r4, r5
+	// Scale correction factor
+	rsb r7, r8, #32
+	lsr r7, r7, #1
+	lsr r4, r5, r7
+	// Add correction to the value
+	add r0, r4, r6
+sqrtFixedEnd:
+	pop { r4-r9, lr }
 	bx lr
-
-
 
 .align 4
-sqrt_0_16_table:
-.word 0x00000000 // sqrt(00) = 0.000000, err = 0.000000
-.word 0x00010000 // sqrt(01) = 1.000000, err = 0.000000
-.word 0x00016A09 // sqrt(02) = 1.414200, err = -0.000014
-.word 0x0001BB67 // sqrt(03) = 1.732040, err = -0.000010
-.word 0x00020000 // sqrt(04) = 2.000000, err = 0.000000
-.word 0x00023C6E // sqrt(05) = 2.236053, err = -0.000015
-.word 0x00027311 // sqrt(06) = 2.449478, err = -0.000012
-.word 0x0002A54F // sqrt(07) = 2.645737, err = -0.000015
-.word 0x0002D413 // sqrt(08) = 2.828415, err = -0.000012
-.word 0x00030000 // sqrt(09) = 3.000000, err = 0.000000
-.word 0x0003298B // sqrt(10) = 3.162277, err = -0.000000
-.word 0x0003510E // sqrt(11) = 3.316620, err = -0.000005
-.word 0x000376CF // sqrt(12) = 3.464096, err = -0.000006
-.word 0x00039B05 // sqrt(13) = 3.605545, err = -0.000006
-.word 0x0003BDDD // sqrt(14) = 3.741653, err = -0.000004
-.word 0x0003DF7B // sqrt(15) = 3.872971, err = -0.000013
-.word 0x00040000 // sqrt(16) = 4.000000, err = 0.000000
+sqrtDoubleParableScale:
+.word 0x00064b12 	// L
+.word 0x00047333	// L
+.word 0x0005d399 	// R
+.word 0x00041eb8	// R
+
+
