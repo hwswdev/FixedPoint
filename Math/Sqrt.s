@@ -23,7 +23,7 @@
   * @description  32768.25      =>  0x80004000,
   * @description  65535.9999847 =>  0xFFFFFFFF
   *
-  * @description  accuracy is about 0.1
+  * @description  accuracy is about 1.5e-5, i.e. 1LSB
   *
   *******************************************************************************************
  */
@@ -157,6 +157,7 @@ sqrtCalcMsbLoopExit:
 	ldrb r4, [r4, r8]
 	mov r7, #1
 	lsl r7, r7, r4
+
 sqrtCorrLoop:
 	cmp r7, #0
 	beq sqrtEndCorrLoop			// Skip if nothing to do
@@ -168,12 +169,17 @@ sqrtCorrLoop:
 	rsbs r8, r4, #0
 sqrtMulLpNotZero:
 	sbcs r8, r0, r5
-	ite cc
+	it cc
 	subcc r6, r6, r7
-	addcs r6, r6, r7
+	bcc sqrtSkipSum
+	rsb r4, r7, #0xFFFFFFFF
+	cmp r4, r6
+	ite hi
+	addhi r6, r6, r7
+	ldrls r6, =#0xFFFFFFFF
+sqrtSkipSum:
 	lsrs r7, r7, #1
 	b sqrtCorrLoop
-
 sqrtEndCorrLoop:
 	mov r0, r6
 sqrtFixedEnd:
@@ -189,35 +195,38 @@ sqrtDoubleParableScale:
 
 .align 4
 sqrtMaxErrorPowArray:
-.byte 0
-.byte 3
-.byte 7
-.byte 7
-.byte 8
-.byte 8
-.byte 8
-.byte 8
-.byte 8
-.byte 8
-.byte 7
-.byte 7
-.byte 6
-.byte 6
-.byte 6
-.byte 5
-.byte 6
-.byte 6
-.byte 6
-.byte 7
-.byte 7
-.byte 8
-.byte 8
-.byte 8
-.byte 9
-.byte 9
-.byte 10
-.byte 10
-.byte 11
-.byte 12
-.byte 12
-.byte 12
+.byte 0x00 // err = 0.0000, bitCount=0
+.byte 0x00 // err = 0.0000, bitCount=1
+.byte 0x07 // err = 0.0022, bitCount=2
+.byte 0x07 // err = 0.0034, bitCount=3
+.byte 0x08 // err = 0.0048, bitCount=4
+.byte 0x08 // err = 0.0069, bitCount=5
+.byte 0x08 // err = 0.0068, bitCount=6
+.byte 0x08 // err = 0.0056, bitCount=7
+.byte 0x08 // err = 0.0039, bitCount=8
+.byte 0x07 // err = 0.0029, bitCount=9
+.byte 0x07 // err = 0.0022, bitCount=10
+.byte 0x06 // err = 0.0016, bitCount=11
+.byte 0x06 // err = 0.0012, bitCount=12
+.byte 0x06 // err = 0.0010, bitCount=13
+.byte 0x05 // err = 0.0009, bitCount=14
+.byte 0x05 // err = 0.0009, bitCount=15
+.byte 0x06 // err = 0.0011, bitCount=16
+.byte 0x06 // err = 0.0013, bitCount=17
+.byte 0x06 // err = 0.0017, bitCount=18
+.byte 0x07 // err = 0.0023, bitCount=19
+.byte 0x07 // err = 0.0033, bitCount=20
+.byte 0x08 // err = 0.0046, bitCount=21
+.byte 0x08 // err = 0.0065, bitCount=22
+.byte 0x09 // err = 0.0092, bitCount=23
+.byte 0x09 // err = 0.0130, bitCount=24
+.byte 0x0A // err = 0.0184, bitCount=25
+.byte 0x0A // err = 0.0260, bitCount=26
+.byte 0x0B // err = 0.0367, bitCount=27
+.byte 0x0B // err = 0.0519, bitCount=28
+.byte 0x0C // err = 0.0733, bitCount=29
+.byte 0x0C // err = 0.1037, bitCount=30
+.byte 0x0C
+.byte 0x0D
+
+
