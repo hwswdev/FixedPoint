@@ -150,7 +150,32 @@ sqrtCalcMsbLoopExit:
 	lsr r7, r7, #1
 	lsr r4, r5, r7
 	// Add correction to the value
-	add r0, r4, r6
+	add r6, r6, r4
+
+	// SQRT iterative correction
+	ldr r4, =sqrtMaxErrorPowArray
+	ldrb r4, [r4, r8]
+	mov r7, #1
+	lsl r7, r7, r4
+sqrtCorrLoop:
+	cmp r7, #0
+	beq sqrtEndCorrLoop			// Skip if nothing to do
+	umull r4, r5, r6, r6
+	rsbs r8, r4, #0
+	bne sqrtMulLpNotZero
+	sbcs r8, r0, r5
+	beq sqrtEndCorrLoop
+	rsbs r8, r4, #0
+sqrtMulLpNotZero:
+	sbcs r8, r0, r5
+	ite cc
+	subcc r6, r6, r7
+	addcs r6, r6, r7
+	lsrs r7, r7, #1
+	b sqrtCorrLoop
+
+sqrtEndCorrLoop:
+	mov r0, r6
 sqrtFixedEnd:
 	pop { r4-r9, lr }
 	bx lr
@@ -162,4 +187,37 @@ sqrtDoubleParableScale:
 .word 0x0005d399 	// R
 .word 0x00041eb8	// R
 
-
+.align 4
+sqrtMaxErrorPowArray:
+.byte 0
+.byte 3
+.byte 7
+.byte 7
+.byte 8
+.byte 8
+.byte 8
+.byte 8
+.byte 8
+.byte 8
+.byte 7
+.byte 7
+.byte 6
+.byte 6
+.byte 6
+.byte 5
+.byte 6
+.byte 6
+.byte 6
+.byte 7
+.byte 7
+.byte 8
+.byte 8
+.byte 8
+.byte 9
+.byte 9
+.byte 10
+.byte 10
+.byte 11
+.byte 12
+.byte 12
+.byte 12
