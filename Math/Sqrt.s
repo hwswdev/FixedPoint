@@ -44,12 +44,17 @@ sqrtFixed:
 	// Get total bit count of X value
 	mov r4, r0
 	mov r8, #32
-sqrtCalcMsbLoop:
-    lsls r4, r4, #1
-    bcs sqrtCalcMsbLoopExit
-	subs r8, r8, #1
-    bne sqrtCalcMsbLoop
-sqrtCalcMsbLoopExit:
+
+//sqrtCalcMsbLoop:
+//    lsls r4, r4, #1
+//    bcs sqrtCalcMsbLoopExit
+//	subs r8, r8, #1
+//    bne sqrtCalcMsbLoop
+//sqrtCalcMsbLoopExit:
+
+  // MsbCalculation, Google AI ask about.
+  clz r8, r4          // Считаем нули слева
+  rsb r8, r8, #32     // r8 = 32 - количество нулей = позиция MSB
 
 	// Now R0 <= X, R8 <= MSB, i.e. most significant bit set on value
 	// **************************************************
