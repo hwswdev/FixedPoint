@@ -1,0 +1,501 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?application progid="SMath Solver" version="1.5.0.9678"?>
+<worksheet xmlns="http://smath.info/schemas/worksheet/1.0">
+  <settings ppi="96">
+    <identity>
+      <id>0e3b5881-6756-488a-990d-905a26416c94</id>
+      <revision>21</revision>
+    </identity>
+    <calculation>
+      <precision>4</precision>
+      <exponentialThreshold>5</exponentialThreshold>
+      <trailingZeros>false</trailingZeros>
+      <significantDigitsMode>false</significantDigitsMode>
+      <mixedNumbers>false</mixedNumbers>
+      <roundingMode>0</roundingMode>
+      <approximateEqualAccuracy>3</approximateEqualAccuracy>
+      <fractions>decimal</fractions>
+    </calculation>
+    <pageModel active="false" viewMode="2" printGrid="false" printAreas="true" simpleEqualsOnly="false" printBackgroundImages="true" hideElementsHighlightings="true">
+      <paper id="1" orientation="Portrait" width="850" height="1100" />
+      <margins left="39" right="39" top="49" bottom="49" />
+      <header alignment="Center" color="#a9a9a9">&amp;[DATE] &amp;[TIME] - &amp;[FILENAME]</header>
+      <footer alignment="Center" color="#a9a9a9">&amp;[PAGENUM] / &amp;[COUNT]</footer>
+      <backgrounds />
+    </pageModel>
+    <dependencies>
+      <assembly name="SMath Core" version="1.75.9678.0" guid="a37cba83-b69c-4c71-9992-55ff666763bd" />
+      <assembly name="MathRegion" version="1.75.9678.0" guid="02f1ab51-215b-466e-a74d-5d8b1cf85e8d" />
+      <assembly name="SpecialFunctions" version="1.75.9678.0" guid="2814e667-4e12-48b1-8d51-194e480eabc5" />
+      <assembly name="PlotRegion" version="1.75.9678.0" guid="c451c2b5-798b-4f08-b9ec-b90963d1ddaa" />
+    </dependencies>
+  </settings>
+  <regions type="content">
+    <region left="324" top="0" width="432" height="112" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">clz</e>
+          <e type="operand">x</e>
+          <e type="operand">0</e>
+          <e type="operator" args="2">≡</e>
+          <e type="operand">32</e>
+          <e type="operand">32</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operand">2</e>
+          <e type="operand">32</e>
+          <e type="operator" args="2">^</e>
+          <e type="operand">1</e>
+          <e type="operator" args="2">-</e>
+          <e type="operand">2</e>
+          <e type="operand">32</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">/</e>
+          <e type="operator" args="2">+</e>
+          <e type="operand">2</e>
+          <e type="function" args="2">log</e>
+          <e type="operand">2</e>
+          <e type="operand">32</e>
+          <e type="operator" args="2">^</e>
+          <e type="operand">1</e>
+          <e type="operator" args="2">-</e>
+          <e type="operand">2</e>
+          <e type="operand">32</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">/</e>
+          <e type="operator" args="2">+</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operator" args="2">-</e>
+          <e type="function" args="3">if</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="18" top="9" width="87" height="27" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">y</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">sqrt</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="18" top="54" width="161" height="25" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">msb</e>
+          <e type="operand">32</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">clz</e>
+          <e type="operator" args="2">-</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="9" top="108" width="479" height="66" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">linScale</e>
+          <e type="operand">2</e>
+          <e type="function" args="1">sqrt</e>
+          <e type="bracket">(</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">msb</e>
+          <e type="operator" args="2">^</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operand">1</e>
+          <e type="operand">2</e>
+          <e type="function" args="1">sqrt</e>
+          <e type="operator" args="2">+</e>
+          <e type="bracket">(</e>
+          <e type="operand">2</e>
+          <e type="operand">29</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">*</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operator" args="2">*</e>
+          <e type="operand">2</e>
+          <e type="operand">32</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">/</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="9" top="189" width="617" height="65" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">linSqrt</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operand">2</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">msb</e>
+          <e type="operand">1</e>
+          <e type="operator" args="2">-</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">-</e>
+          <e type="bracket">(</e>
+          <e type="operand">2</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">msb</e>
+          <e type="operand">1</e>
+          <e type="operator" args="2">-</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">/</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">linScale</e>
+          <e type="operator" args="2">*</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operand">2</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">msb</e>
+          <e type="operand">1</e>
+          <e type="operator" args="2">-</e>
+          <e type="operator" args="2">^</e>
+          <e type="function" args="1">sqrt</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operator" args="2">+</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="9" top="261" width="325" height="62" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">argBitCount</e>
+          <e type="operand">x</e>
+          <e type="operand">2</e>
+          <e type="operand">32</e>
+          <e type="operator" args="2">^</e>
+          <e type="operand">1</e>
+          <e type="operator" args="2">-</e>
+          <e type="operand">2</e>
+          <e type="operand">32</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">/</e>
+          <e type="operator" args="2">+</e>
+          <e type="operand">2</e>
+          <e type="function" args="2">log</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="360" top="261" width="418" height="62" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">resultBitCount</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">trunc</e>
+          <e type="function" args="1">sqrt</e>
+          <e type="operand">2</e>
+          <e type="operand">32</e>
+          <e type="operator" args="2">^</e>
+          <e type="operand">1</e>
+          <e type="operator" args="2">-</e>
+          <e type="operand">2</e>
+          <e type="operand">32</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">/</e>
+          <e type="operator" args="2">+</e>
+          <e type="operand">2</e>
+          <e type="function" args="2">log</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="9" top="324" width="529" height="60" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">linearBitError</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">trunc</e>
+          <e type="function" args="1">sqrt</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">linSqrt</e>
+          <e type="operator" args="2">-</e>
+          <e type="bracket">(</e>
+          <e type="operand">2</e>
+          <e type="function" args="2">log</e>
+          <e type="operand">2</e>
+          <e type="operand">32</e>
+          <e type="operator" args="2">^</e>
+          <e type="operand">1</e>
+          <e type="operator" args="2">-</e>
+          <e type="operand">2</e>
+          <e type="operand">32</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">/</e>
+          <e type="operator" args="2">+</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="9" top="396" width="762" height="223" color="#000000" fontSize="10">
+      <plot type="2d" render="lines" scale_x="0.0324630291342612" scale_y="0.000402376268097938" scale_z="9.52885663497184E-06" rotate_x="0" rotate_y="0" rotate_z="0" transpose_x="-307" transpose_y="-95" transpose_z="0">
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">sqrt</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">linSqrt</e>
+          <e type="operand">2</e>
+          <e type="operand">1</e>
+          <e type="function" args="4">sys</e>
+        </input>
+      </plot>
+    </region>
+    <region left="9" top="684" width="762" height="216" color="#000000" fontSize="10">
+      <plot type="2d" render="lines" scale_x="0.235489855363084" scale_y="5.59104134653317E-09" scale_z="2.87204600697017E-07" rotate_x="0" rotate_y="0" rotate_z="0" transpose_x="-343" transpose_y="-74" transpose_z="0">
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">argBitCount</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">resultBitCount</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">resultBitCount</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">linearBitError</e>
+          <e type="operator" args="2">-</e>
+          <e type="operand">3</e>
+          <e type="operand">1</e>
+          <e type="function" args="5">sys</e>
+        </input>
+      </plot>
+    </region>
+    <region left="9" top="999" width="257" height="27" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">linSqrtErr</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">sqrt</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">linSqrt</e>
+          <e type="operator" args="2">-</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="9" top="1035" width="168" height="43" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">cosShift</e>
+          <e type="operand">2</e>
+          <e type="function" args="1">sqrt</e>
+          <e type="operand">5</e>
+          <e type="operator" args="2">/</e>
+          <e type="operand">0.01</e>
+          <e type="operator" args="2">+</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="216" top="1044" width="126" height="24" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">cosAngle</e>
+          <e type="operand">19.4</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="369" top="1044" width="126" height="24" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">cosScale</e>
+          <e type="operand">0.83</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="0" top="1107" width="861" height="118" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">ec</e>
+          <e type="operand">x</e>
+          <e type="operand">2</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">msb</e>
+          <e type="operand">1</e>
+          <e type="operator" args="2">-</e>
+          <e type="operator" args="2">^</e>
+          <e type="operand">2</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">msb</e>
+          <e type="operand">2</e>
+          <e type="operator" args="2">-</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">+</e>
+          <e type="bracket">(</e>
+          <e type="operator" args="2">-</e>
+          <e type="operand">2</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">msb</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">/</e>
+          <e type="operand">2</e>
+          <e type="operator" args="2">*</e>
+          <e type="operand">π</e>
+          <e type="operator" args="2">*</e>
+          <e type="operand">π</e>
+          <e type="operand">cosAngle</e>
+          <e type="operand">180</e>
+          <e type="operator" args="2">/</e>
+          <e type="operator" args="2">*</e>
+          <e type="operator" args="2">+</e>
+          <e type="function" args="1">cos</e>
+          <e type="operand">2</e>
+          <e type="operand">32</e>
+          <e type="operator" args="2">^</e>
+          <e type="operand">1</e>
+          <e type="operator" args="2">-</e>
+          <e type="bracket">(</e>
+          <e type="operator" args="2">*</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operand">2</e>
+          <e type="operand">32</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">/</e>
+          <e type="operand">cosShift</e>
+          <e type="operator" args="2">-</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">linScale</e>
+          <e type="operator" args="2">/</e>
+          <e type="bracket">(</e>
+          <e type="operand">2</e>
+          <e type="function" args="1">sqrt</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">msb</e>
+          <e type="operator" args="2">^</e>
+          <e type="operand">2</e>
+          <e type="operand">6</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">/</e>
+          <e type="operator" args="2">*</e>
+          <e type="operand">cosScale</e>
+          <e type="operator" args="2">*</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="18" top="1242" width="729" height="264" color="#000000" fontSize="10">
+      <plot type="2d" render="lines" scale_x="174.277549002046" scale_y="7.40946419335955E-09" scale_z="3.33419959558078E-06" rotate_x="0" rotate_y="0" rotate_z="0" transpose_x="-321" transpose_y="5" transpose_z="0">
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">linSqrtErr</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">linScale</e>
+          <e type="operator" args="2">/</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">ec</e>
+          <e type="operand">2</e>
+          <e type="operand">1</e>
+          <e type="function" args="4">sys</e>
+        </input>
+      </plot>
+    </region>
+    <region left="18" top="1584" width="367" height="27" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">cosSqrt</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">linSqrt</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">ec</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">linScale</e>
+          <e type="operator" args="2">*</e>
+          <e type="bracket">(</e>
+          <e type="operator" args="2">+</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="18" top="1620" width="505" height="60" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">cosBitError</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">trunc</e>
+          <e type="function" args="1">sqrt</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">cosSqrt</e>
+          <e type="operator" args="2">-</e>
+          <e type="bracket">(</e>
+          <e type="operand">2</e>
+          <e type="function" args="2">log</e>
+          <e type="operand">2</e>
+          <e type="operand">32</e>
+          <e type="operator" args="2">^</e>
+          <e type="operand">1</e>
+          <e type="operator" args="2">-</e>
+          <e type="operand">2</e>
+          <e type="operand">32</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">/</e>
+          <e type="operator" args="2">+</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="0" top="1710" width="772" height="238" color="#000000" fontSize="10">
+      <plot type="2d" render="lines" scale_x="0.00816914977960231" scale_y="6.66851777402361E-09" scale_z="3.97397897313851E-11" rotate_x="0" rotate_y="0" rotate_z="0" transpose_x="-355" transpose_y="5" transpose_z="0">
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">sqrt</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">linSqrt</e>
+          <e type="operator" args="2">-</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">sqrt</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">cosSqrt</e>
+          <e type="operator" args="2">-</e>
+          <e type="operand">2</e>
+          <e type="operand">1</e>
+          <e type="function" args="4">sys</e>
+        </input>
+      </plot>
+    </region>
+    <region left="0" top="2016" width="769" height="358" color="#000000" fontSize="10">
+      <plot type="2d" render="lines" scale_x="0.880743853240018" scale_y="1.18035871502977E-08" scale_z="2.08239080639377E-06" rotate_x="0" rotate_y="0" rotate_z="0" transpose_x="-370" transpose_y="-223" transpose_z="0">
+        <description active="false" position="Top" lang="eng">
+          <content></content>
+        </description>
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">argBitCount</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">resultBitCount</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">cosBitError</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">resultBitCount</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">cosBitError</e>
+          <e type="operator" args="2">-</e>
+          <e type="operand">4</e>
+          <e type="operand">1</e>
+          <e type="function" args="6">sys</e>
+        </input>
+      </plot>
+    </region>
+  </regions>
+</worksheet>
