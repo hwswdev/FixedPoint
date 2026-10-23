@@ -33,10 +33,11 @@
 .thumb
 
 .global sqrtFixed
+
 .type sqrtFixed, %function
 .align 4
 sqrtFixed:
-	push { r4-r9, lr }
+	push { r1-r9, lr }
 	// Check if zero, don't calculate
 	cmp r0, #0
 	beq sqrtFixedEnd
@@ -144,9 +145,9 @@ sqrtFixed:
 	// Here is ~101 CPU clock on Cortex M7
 	//********************************
 	// ++++++++Commented block++++++++
-	mov r0, r6
-	pop { r4-r9, lr }
-	bx lr
+	//mov r0, r6
+	//pop { r1-r9, lr }
+	//bx lr
 	// --------Commented Block -------
 	//********************************
 
@@ -181,7 +182,7 @@ sqrtSkipSum:
 sqrtEndCorrLoop:
 	mov r0, r6
 sqrtFixedEnd:
-	pop { r4-r9, lr }
+	pop { r1-r9, lr }
 	bx lr
 
 .align 4
@@ -228,3 +229,96 @@ sqrtMaxErrorPowArray:
 .byte 0x0D
 
 
+
+
+.global sqrtFixedSin
+.type sqrtFixedSin, %function
+.align 4
+sqrtFixedSin:
+    push { r1-r9, lr }
+
+    // Проверка аргумента на ноль (корень из 0 = 0)
+    cmp r0, #0
+    beq sqrtFixedSin_End
+
+    // *****************************************************************
+    // БЛОК 1: Базовая кусочно-линейная аппроксимация (linSqrt)
+    // *****************************************************************
+    clz r7, r0                  // r7 <= clz(x)
+    add r6, r7, #1              // r6 <= clz(x) + 1
+    rsb r8, r7, #32             // r8 <= bitCount (34 - clz)
+    lsl r9, r0, r6              // r9 <= Xcorr (нормализованный аргумент)
+
+    tst r8, #1                  // Проверка четности старшего бита
+    ittee eq
+    ldreq r6, =0xb504f333       // Y0 для чётных степеней (sqrt(2))
+    ldreq r5, =0x4afb0ccc       // dY для чётных степеней   (1257966796 (2515933592 ÷ 2) в HEX равен 4AFB0CCC)
+    ldrne r6, =0x80000000       // Y0 для нечётных степеней (1.0)
+    ldrne r5, =0x3504F333       // dY для нечётных степеней (1779033703 (3558067406 ÷ 2) в HEX равен 6A09E667/2=3504F333)
+
+    umull r1, r4, r9, r5        // r4 <= (dY * Xcorr) >> 32
+    add r4, r4, r6              // r4 <= линейная аппроксимация в масштабе Q32
+
+    lsr r3, r7, #1              // Вычисляем сдвиг мантиссы: clz / 2
+    lsr r6, r4, r3              // r6 <= linSqrt(x) (базовый корень в формате Q16.16)
+
+    // Если Xcorr равен 0, то коррекция фазы не требуется
+    cmp r9, #0
+    beq sqrtFixedSin_FastEnd
+
+    // *****************************************************************
+    // БЛОК 2: Генерация степеней Xcorr для полинома фазы
+    // *****************************************************************
+    umull r1, r4, r9, r9        // r4 <= QXcorr = (Xcorr * Xcorr) >> 32
+    umull r1, r2, r4, r9        // r2 <= TXcorr = (QXcorr * Xcorr) >> 32
+    umull r1, r3, r2, r9        // r3 <= FXcorr = (TXcorr * Xcorr) >> 32
+
+    // *****************************************************************
+    // БЛОК 3: Сборка полинома фазы Xnew
+    // *****************************************************************
+    mov r0, 0x80000000
+    sub r0, r0, r9		        // r0 <= -Xcorr
+
+    // Добавляем QXcorr * QK / 2^31
+    ldr r1, =2191184939         // QK
+    umull r1, r4, r4, r1        // r4 <= (QXcorr * QK) >> 32
+    add r0, r0, r4, lsl #1
+
+    // Добавляем TXcorr * TK / 2^32
+    ldr r1, =2061584301         // TK
+    umull r1, r4, r2, r1        // r4 <= (TXcorr * TK) >> 32
+    add r0, r0, r4, lsr #1
+
+    // Вычитаем FXcorr * FK / 2^32
+    ldr r1, =2233382993         // FK
+    umull r1, r4, r3, r1        // r4 <= (FXcorr * FK) >> 32
+    sub r4, r0, r4, lsr #1
+
+    // *****************************************************************
+    // БЛОК 4: Вызов Вашего rSinFixed(angle, radius)
+    // *****************************************************************
+    // Передаем параметры строго по вашему ABI
+    lsr r3, r7, #1              // Вычисляем сдвиг мантиссы: clz / 2
+    ldr r1, =2211908156         // r1 <= константный Scale из SMath
+    umull r0, r1, r1, r5		// r1 <= масштабируем на R5
+    lsr r1, r1, #3
+    lsr r1, r1, r3              // r3 содержит сохраненный сдвиг (clz / 2)
+    mov r0, r4              	// r0 <= angle = Xnew
+    bl rSinFixed                // Вызов функции. На выходе r0 <= знаковый ec(x)
+
+	// Смещение
+	mov r1, #20
+	lsl r1, r1, #16
+    umull r2, r4, r1, r5		// r1 <= масштабируем на R5
+    lsr r1, r4, r3              // r3 содержит сохраненный сдвиг (clz / 2)
+	sub r0, r0, r1
+    // Финальное смещение мантиссы по сетке clz/2 и сумма
+    add r0, r6, r0              // Итоговый результат: linSqrt + коррекция
+sqrtFixedSin_End:
+    pop { r1-r9, lr }
+    bx lr
+
+sqrtFixedSin_FastEnd:
+    mov r0, r6                  // Если поправка нулевая, возвращаем linSqrt
+    pop { r1-r9, lr }
+    bx lr

@@ -16,6 +16,7 @@ typedef uint32_t SqrtResQ16d16;
 // arg: 	 Q32
 // result:	 Q16.16
 SqrtResQ16d16 sqrtFixed( SqrtArgQ32 arg );
+SqrtResQ16d16 sqrtFixedSin( SqrtArgQ32 arg );
 
 
 #ifdef __cplusplus
