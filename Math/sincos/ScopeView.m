@@ -32,6 +32,7 @@ xlabel('Time, s');
 ylabel('Voltage, V');
 title('Time Domain Signals (Oscillogram)');
 legend('CH1', 'CH2');
+xlim([0, max(t)]);
 
 % =========================================================================
 % ФИГУРА 2: ФИГУРА ЛИССАЖУ
@@ -80,6 +81,7 @@ xlabel('Frequency, Hz');
 ylabel('Amplitude, V');
 title('FFT Amplitude Spectrum');
 legend('CH1 Spectrum', 'CH2 Spectrum');
+%xlim([0, 100]);
 
 % Ниже подграфик: Фазовый спектр
 subplot(2, 1, 2);
@@ -90,4 +92,5 @@ xlabel('Frequency, Hz');
 ylabel('Phase, Degrees');
 title('FFT Phase Spectrum');
 ylim([-180, 180]);
+%xlim([0, 100]);
 
