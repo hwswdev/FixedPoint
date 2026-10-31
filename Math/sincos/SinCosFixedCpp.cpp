@@ -7,6 +7,10 @@
 typedef uint32_t TSinPI4_Result;
 typedef uint32_t TAngleFixedArg;
 
+//#define SINCOS_TEILOR (1)
+
+#if defined(SINCOS_TEILOR)
+
 
 inline uint32_t sinFixed_0ToPI4( uint32_t arg ) {
 
@@ -97,6 +101,108 @@ inline uint32_t cosFixed_0ToPI4( uint32_t arg ) {
 }
 
 
+#else
+
+/*
+ * 1,0.785398163134232,3373259425
+ * 2,0.308425137307495,1324675878
+ * 3,0.080745512153953,346799334
+ * 4,0.015854344237596,68093890
+ * 5,0.002490394515917,10696163
+ * 6,0.000325991772115,1400124
+ * 7,0.000036576064304,157093
+ * 8,0.000003590714186,15422
+ * 9,0.000000313157216,1345
+ * 10,0.000000024447218,105
+ * 11,0.000000001629815,7
+ * 12,0,0
+ */
+inline uint32_t sinFixed_0ToPI4( uint32_t arg ) {
+
+	constexpr const uint32_t K1 = 3373259425;
+	constexpr const uint32_t K3 = 346799334;
+	constexpr const uint32_t K5 = 10696163;
+	constexpr const uint32_t K7 = 157093;
+	constexpr const uint32_t K9 = 1345;
+	constexpr const uint32_t K11 = 7;
+
+	uint32_t xn = (arg << 3);
+	uint32_t x_quad = umull_32( xn, xn );
+
+	uint64_t sum = umull_64( xn, K1 );
+
+	xn = umull_32( xn, x_quad );
+	sum = umslal_64( sum, xn, K3 );
+
+	xn = umull_32( xn, x_quad );
+	sum = umlal_64( sum, xn, K5 );
+
+	xn = umull_32( xn, x_quad );
+	sum = umslal_64( sum, xn, K7 );
+
+	xn = umull_32( xn, x_quad );
+	sum = umlal_64( sum, xn, K9 );
+
+	xn = umull_32( xn, x_quad );
+	sum = umslal_64( sum, xn, K11 );
+
+	return static_cast<uint32_t>( (sum + 0x80000000) >> 32 );
+
+}
+
+
+
+/*
+ * 1,0.785398163134232,3373259425
+ * 2,0.308425137307495,1324675878
+ * 3,0.080745512153953,346799334
+ * 4,0.015854344237596,68093890
+ * 5,0.002490394515917,10696163
+ * 6,0.000325991772115,1400124
+ * 7,0.000036576064304,157093
+ * 8,0.000003590714186,15422
+ * 9,0.000000313157216,1345
+ * 10,0.000000024447218,105
+ * 11,0.000000001629815,7
+ * 12,0,0
+ */
+inline uint32_t cosFixed_0ToPI4( uint32_t arg ) {
+
+	constexpr const uint32_t K2 = 1324675878;
+	constexpr const uint32_t K4 = 68093890;
+	constexpr const uint32_t K6 = 1400124;
+	constexpr const uint32_t K8 = 15422;
+	constexpr const uint32_t K10 = 105;
+	constexpr const uint32_t K12 = 1;
+
+	uint32_t xn = (arg << 3);
+	uint32_t x_quad = umull_32( xn, xn );
+
+	// Стартуем с честной единицы в Q0.64. Регистры не плодятся!
+	uint64_t sum = 0xFFFFFFFF80000000ULL;
+
+	// Прямое вычитание поправок из единицы
+	sum = umslal_64( sum, x_quad, K2 );
+
+	xn = umull_32( x_quad, x_quad );
+	sum = umlal_64( sum, xn, K4 );
+
+	xn = umull_32( xn, x_quad );
+	sum = umslal_64( sum, xn, K6 );
+
+	xn = umull_32( xn, x_quad );
+	sum = umlal_64( sum, xn, K8 );
+
+	xn = umull_32( xn, x_quad );
+	sum = umslal_64( sum, xn, K10 );
+
+	uint32_t sum32 = sum >> 32;
+	sum32 = ( 0 == sum32 ) ? (sum32 - 1) : sum32;
+
+	return sum32;
+}
+
+#endif
 
 extern "C" int32_t sinFixed( uint32_t arg ) {
 
@@ -142,10 +248,10 @@ extern "C" int32_t cosFixed( uint32_t arg ) {
 	switch( sel ){
 		case AngleSel::O_0_TO_PI4: 		return (cosFixed_0ToPI4( arg )  >> 1 );
 		case AngleSel::O_PI4_TO_PI2:  	return (sinFixed_0ToPI4( 0x40000000 - arg ) >> 1 );
-		case AngleSel::O_PI2_TO_3PI4:	return -(sinFixed_0ToPI4( arg - 0x40000000 ) >> 1 );
-		case AngleSel::O_3PI4_TO_PI:	return -(cosFixed_0ToPI4( 0x80000000 - arg ) >> 1 );
-		case AngleSel::O_PI_TO_5PI4:	return -(cosFixed_0ToPI4( arg - 0x80000000 ) >> 1 );
-		case AngleSel::O_5PI4_TO_3PI2:	return -(sinFixed_0ToPI4( 0xC0000000 - arg ) >> 1 );
+		case AngleSel::O_PI2_TO_3PI4:	return -static_cast<int32_t>(sinFixed_0ToPI4( arg - 0x40000000 ) >> 1 );
+		case AngleSel::O_3PI4_TO_PI:	return -static_cast<int32_t>(cosFixed_0ToPI4( 0x80000000 - arg ) >> 1 );
+		case AngleSel::O_PI_TO_5PI4:	return -static_cast<int32_t>(cosFixed_0ToPI4( arg - 0x80000000 ) >> 1 );
+		case AngleSel::O_5PI4_TO_3PI2:	return -static_cast<int32_t>(sinFixed_0ToPI4( 0xC0000000 - arg ) >> 1 );
 		case AngleSel::O_3PI2_TO_7PI4:	return (sinFixed_0ToPI4( arg - 0xC0000000 ) >> 1 );
 		case AngleSel::O_7PI4_TO_2PI:	return (cosFixed_0ToPI4( 0x00000000 - arg ) >> 1 );
 		default: return 0;
@@ -172,10 +278,10 @@ extern "C" int32_t rSinFixed( uint32_t arg, uint32_t radius ) {
 		case AngleSel::O_PI4_TO_PI2:	return ( umull_32( cosFixed_0ToPI4( 0x40000000 - arg ), radius ) >> 2 );
 		case AngleSel::O_PI2_TO_3PI4: 	return ( umull_32( cosFixed_0ToPI4( arg - 0x40000000 ), radius ) >> 2 );
 		case AngleSel::O_3PI4_TO_PI:  	return ( umull_32( sinFixed_0ToPI4( 0x80000000 - arg ), radius ) >> 2 );
-		case AngleSel::O_PI_TO_5PI4:	return -( umull_32( sinFixed_0ToPI4( arg - 0x80000000 ), radius ) >> 2 );
-		case AngleSel::O_5PI4_TO_3PI2:	return -( umull_32( cosFixed_0ToPI4( 0xC0000000 - arg ), radius ) >> 2 );
-		case AngleSel::O_3PI2_TO_7PI4:	return -( umull_32( cosFixed_0ToPI4( arg - 0xC0000000 ), radius ) >> 2 );
-		case AngleSel::O_7PI4_TO_2PI:	return -( umull_32( sinFixed_0ToPI4( 0x00000000 - arg ), radius ) >> 2 );
+		case AngleSel::O_PI_TO_5PI4:	return -static_cast<int32_t>( umull_32( sinFixed_0ToPI4( arg - 0x80000000 ), radius ) >> 2 );
+		case AngleSel::O_5PI4_TO_3PI2:	return -static_cast<int32_t>( umull_32( cosFixed_0ToPI4( 0xC0000000 - arg ), radius ) >> 2 );
+		case AngleSel::O_3PI2_TO_7PI4:	return -static_cast<int32_t>( umull_32( cosFixed_0ToPI4( arg - 0xC0000000 ), radius ) >> 2 );
+		case AngleSel::O_7PI4_TO_2PI:	return -static_cast<int32_t>( umull_32( sinFixed_0ToPI4( 0x00000000 - arg ), radius ) >> 2 );
 		default: return 0;
 	}
 
