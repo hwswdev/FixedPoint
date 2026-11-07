@@ -1,0 +1,884 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?application progid="SMath Solver" version="1.5.0.9678"?>
+<worksheet xmlns="http://smath.info/schemas/worksheet/1.0">
+  <settings ppi="96">
+    <identity>
+      <id>967d0896-4ce5-4f61-8f95-908c452bc67e</id>
+      <revision>114</revision>
+    </identity>
+    <calculation>
+      <precision>4</precision>
+      <exponentialThreshold>5</exponentialThreshold>
+      <trailingZeros>false</trailingZeros>
+      <significantDigitsMode>false</significantDigitsMode>
+      <mixedNumbers>false</mixedNumbers>
+      <roundingMode>0</roundingMode>
+      <approximateEqualAccuracy>3</approximateEqualAccuracy>
+      <fractions>decimal</fractions>
+    </calculation>
+    <pageModel active="false" viewMode="2" printGrid="false" printAreas="true" simpleEqualsOnly="false" printBackgroundImages="true" hideElementsHighlightings="true">
+      <paper id="1" orientation="Portrait" width="850" height="1100" />
+      <margins left="39" right="39" top="49" bottom="49" />
+      <header alignment="Center" color="#a9a9a9">&amp;[DATE] &amp;[TIME] - &amp;[FILENAME]</header>
+      <footer alignment="Center" color="#a9a9a9">&amp;[PAGENUM] / &amp;[COUNT]</footer>
+      <backgrounds />
+    </pageModel>
+    <dependencies>
+      <assembly name="SMath Core" version="1.75.9678.0" guid="a37cba83-b69c-4c71-9992-55ff666763bd" />
+      <assembly name="MathRegion" version="1.75.9678.0" guid="02f1ab51-215b-466e-a74d-5d8b1cf85e8d" />
+      <assembly name="SpecialFunctions" version="1.75.9678.0" guid="2814e667-4e12-48b1-8d51-194e480eabc5" />
+      <assembly name="TextRegion" version="1.75.9678.0" guid="485d28c5-349a-48b6-93be-12a35a1c1e39" />
+      <assembly name="PlotRegion" version="1.75.9678.0" guid="c451c2b5-798b-4f08-b9ec-b90963d1ddaa" />
+    </dependencies>
+  </settings>
+  <regions type="content">
+    <region left="540" top="0" width="214" height="23" color="#000000" fontSize="10">
+      <text lang="eng" fontFamily="Arial" fontSize="10">
+        <content>
+          <p style="font-weight: bold;">Evgeny Sobolev 09.02.1984 y.b.</p>
+        </content>
+      </text>
+    </region>
+    <region left="162" top="45" width="130" height="35" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">Max32</e>
+          <e type="operand">2</e>
+          <e type="operand">32</e>
+          <e type="operator" args="2">^</e>
+          <e type="operand">1</e>
+          <e type="operator" args="2">-</e>
+          <e type="bracket">(</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="18" top="54" width="87" height="27" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">y</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">sqrt</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="324" top="54" width="419" height="103" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">clz</e>
+          <e type="operand">x</e>
+          <e type="operand">0</e>
+          <e type="operator" args="2">≡</e>
+          <e type="operand">32</e>
+          <e type="operand">32</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operand">Max32</e>
+          <e type="operand">2</e>
+          <e type="operand">32</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">/</e>
+          <e type="operator" args="2">+</e>
+          <e type="operand">2</e>
+          <e type="function" args="2">log</e>
+          <e type="operand">Max32</e>
+          <e type="operand">2</e>
+          <e type="operand">32</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">/</e>
+          <e type="operator" args="2">+</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operator" args="2">-</e>
+          <e type="function" args="3">if</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="18" top="117" width="161" height="25" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">msb</e>
+          <e type="operand">32</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">clz</e>
+          <e type="operator" args="2">-</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="18" top="171" width="291" height="40" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">dY_32</e>
+          <e type="operand">2</e>
+          <e type="function" args="1">sqrt</e>
+          <e type="bracket">(</e>
+          <e type="operand">32</e>
+          <e type="operator" args="2">^</e>
+          <e type="operand">2</e>
+          <e type="function" args="1">sqrt</e>
+          <e type="bracket">(</e>
+          <e type="operand">31</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">-</e>
+          <e type="bracket">(</e>
+          <e type="operand">2</e>
+          <e type="operand">16</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">*</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="351" top="180" width="217" height="34" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">Y0_32</e>
+          <e type="operand">2</e>
+          <e type="function" args="1">sqrt</e>
+          <e type="operand">2</e>
+          <e type="operand">15</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">*</e>
+          <e type="operand">2</e>
+          <e type="operand">16</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">*</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="18" top="225" width="291" height="40" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">dY_31</e>
+          <e type="operand">2</e>
+          <e type="function" args="1">sqrt</e>
+          <e type="bracket">(</e>
+          <e type="operand">31</e>
+          <e type="operator" args="2">^</e>
+          <e type="operand">2</e>
+          <e type="function" args="1">sqrt</e>
+          <e type="bracket">(</e>
+          <e type="operand">30</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">-</e>
+          <e type="bracket">(</e>
+          <e type="operand">2</e>
+          <e type="operand">16</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">*</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="351" top="225" width="186" height="34" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">Y0_31</e>
+          <e type="operand">2</e>
+          <e type="operand">15</e>
+          <e type="operator" args="2">^</e>
+          <e type="operand">2</e>
+          <e type="operand">16</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">*</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="18" top="279" width="148" height="24" color="#000000" fontSize="10">
+      <math decimalPlaces="15" exponentialThreshold="15">
+        <input>
+          <e type="operand">dY_32</e>
+        </input>
+        <result action="numeric">
+          <e type="operand">1257966796</e>
+        </result>
+      </math>
+    </region>
+    <region left="216" top="279" width="140" height="24" color="#000000" fontSize="10">
+      <math decimalPlaces="15" exponentialThreshold="15">
+        <input>
+          <e type="operand">dY_31</e>
+        </input>
+        <result action="numeric">
+          <e type="operand">889516851</e>
+        </result>
+      </math>
+    </region>
+    <region left="18" top="315" width="148" height="24" color="#000000" fontSize="10">
+      <math decimalPlaces="5" exponentialThreshold="15">
+        <input>
+          <e type="operand">Y0_32</e>
+        </input>
+        <result action="numeric">
+          <e type="operand">3037000499</e>
+        </result>
+      </math>
+    </region>
+    <region left="216" top="315" width="148" height="24" color="#000000" fontSize="10">
+      <math decimalPlaces="15" exponentialThreshold="15">
+        <input>
+          <e type="operand">Y0_31</e>
+        </input>
+        <result action="numeric">
+          <e type="operand">2147483648</e>
+        </result>
+      </math>
+    </region>
+    <region left="18" top="351" width="292" height="93" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">dY</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">clz</e>
+          <e type="operand">2</e>
+          <e type="operator" args="2">/</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operand">2</e>
+          <e type="operator" args="2">*</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">clz</e>
+          <e type="operator" args="2">≡</e>
+          <e type="operand">dY_32</e>
+          <e type="operand">dY_31</e>
+          <e type="function" args="3">if</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="414" top="360" width="292" height="93" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">Y0</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">clz</e>
+          <e type="operand">2</e>
+          <e type="operator" args="2">/</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operand">2</e>
+          <e type="operator" args="2">*</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">clz</e>
+          <e type="operator" args="2">≡</e>
+          <e type="operand">Y0_32</e>
+          <e type="operand">Y0_31</e>
+          <e type="function" args="3">if</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="18" top="468" width="367" height="36" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">xScaled</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operand">2</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">clz</e>
+          <e type="operand">1</e>
+          <e type="operator" args="2">+</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">*</e>
+          <e type="operand">2</e>
+          <e type="operand">32</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">-</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="18" top="522" width="494" height="53" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">sqrtLinearScaled</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">xScaled</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">dY</e>
+          <e type="operator" args="2">*</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operand">2</e>
+          <e type="operand">32</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">/</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">Y0</e>
+          <e type="operator" args="2">+</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="18" top="612" width="295" height="70" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">sqrtLinear</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">sqrtLinearScaled</e>
+          <e type="operand">2</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">clz</e>
+          <e type="operand">2</e>
+          <e type="operator" args="2">/</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">/</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="18" top="711" width="317" height="25" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">sqrtLinearErr</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">y</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">sqrtLinear</e>
+          <e type="operator" args="2">-</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="9" top="1035" width="738" height="202" color="#000000" fontSize="10">
+      <plot type="2d" render="lines" scale_x="0.0133716527978711" scale_y="0.000106331140811588" scale_z="1.28760080656371E-06" rotate_x="0" rotate_y="0" rotate_z="0" transpose_x="-340" transpose_y="-79" transpose_z="0">
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">sqrtLinear</e>
+          <e type="operand">2</e>
+          <e type="operand">16</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">/</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">sqrt</e>
+          <e type="operand">2</e>
+          <e type="operand">1</e>
+          <e type="function" args="4">sys</e>
+        </input>
+      </plot>
+    </region>
+    <region left="9" top="1350" width="738" height="202" color="#000000" fontSize="10">
+      <plot type="2d" render="lines" scale_x="1.23673713219929E-07" scale_y="6.36615085446461E-09" scale_z="7.13000773956398E-16" rotate_x="0" rotate_y="0" rotate_z="0" transpose_x="-337" transpose_y="-80" transpose_z="0">
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">sqrt</e>
+          <e type="operand">2</e>
+          <e type="operand">16</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">*</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">sqrtLinear</e>
+          <e type="operator" args="2">-</e>
+          <e type="operand">1</e>
+          <e type="operand">1</e>
+          <e type="function" args="3">sys</e>
+        </input>
+      </plot>
+    </region>
+    <region left="9" top="2025" width="253" height="64" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">xMaxErr_32</e>
+          <e type="operand">2</e>
+          <e type="operand">32</e>
+          <e type="operator" args="2">^</e>
+          <e type="operand">4</e>
+          <e type="operand">2</e>
+          <e type="operand">2</e>
+          <e type="function" args="1">sqrt</e>
+          <e type="operator" args="2">*</e>
+          <e type="operator" args="2">-</e>
+          <e type="bracket">(</e>
+          <e type="operand">2</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">/</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="297" top="2034" width="313" height="44" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">xMaxErrScaled_32</e>
+          <e type="operand">2</e>
+          <e type="operand">2</e>
+          <e type="function" args="1">sqrt</e>
+          <e type="operator" args="2">*</e>
+          <e type="operand">1</e>
+          <e type="operator" args="2">-</e>
+          <e type="operand">4</e>
+          <e type="operator" args="2">/</e>
+          <e type="operand">2</e>
+          <e type="operand">32</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">*</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="9" top="2097" width="498" height="45" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">yMaxErr_31</e>
+          <e type="operand">xMaxErr_32</e>
+          <e type="operand">2</e>
+          <e type="operator" args="2">/</e>
+          <e type="function" args="1">sqrt</e>
+          <e type="operand">2</e>
+          <e type="operand">16</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">*</e>
+          <e type="operand">xMaxErr_32</e>
+          <e type="operand">2</e>
+          <e type="operator" args="2">/</e>
+          <e type="function" args="1">sqrtLinear</e>
+          <e type="operator" args="2">-</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="9" top="2142" width="490" height="35" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">yMaxErr_32</e>
+          <e type="operand">xMaxErr_32</e>
+          <e type="function" args="1">sqrt</e>
+          <e type="operand">2</e>
+          <e type="operand">16</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">*</e>
+          <e type="operand">xMaxErr_32</e>
+          <e type="function" args="1">sqrtLinear</e>
+          <e type="operator" args="2">-</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="9" top="2205" width="188" height="24" color="#000000" fontSize="10">
+      <math decimalPlaces="15" exponentialThreshold="15">
+        <input>
+          <e type="operand">xMaxErr_32</e>
+        </input>
+        <result action="numeric">
+          <e type="operand">3129112985</e>
+        </result>
+      </math>
+    </region>
+    <region left="234" top="2205" width="172" height="24" color="#000000" fontSize="10">
+      <math decimalPlaces="15" exponentialThreshold="15">
+        <input>
+          <e type="operand">yMaxErr_31</e>
+        </input>
+        <result action="numeric">
+          <e type="operand">38154242</e>
+        </result>
+      </math>
+    </region>
+    <region left="450" top="2205" width="172" height="24" color="#000000" fontSize="10">
+      <math decimalPlaces="15" exponentialThreshold="15">
+        <input>
+          <e type="operand">yMaxErr_32</e>
+        </input>
+        <result action="numeric">
+          <e type="operand">53958246</e>
+        </result>
+      </math>
+    </region>
+    <region left="9" top="2250" width="236" height="24" color="#000000" fontSize="10">
+      <math decimalPlaces="15" exponentialThreshold="15">
+        <input>
+          <e type="operand">xMaxErrScaled_32</e>
+        </input>
+        <result action="numeric">
+          <e type="operand">1963258675</e>
+        </result>
+      </math>
+    </region>
+    <region left="9" top="2295" width="380" height="93" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">yMaxErrScaled</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">clz</e>
+          <e type="operand">2</e>
+          <e type="operator" args="2">/</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operand">2</e>
+          <e type="operator" args="2">*</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">clz</e>
+          <e type="operator" args="2">≡</e>
+          <e type="operand">yMaxErr_32</e>
+          <e type="operand">yMaxErr_31</e>
+          <e type="function" args="3">if</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="450" top="2304" width="184" height="41" color="#000000" fontSize="10">
+      <math decimalPlaces="5" exponentialThreshold="15">
+        <input>
+          <e type="operand">yMaxErr_32</e>
+          <e type="operand">65536</e>
+          <e type="operator" args="2">/</e>
+        </input>
+        <result action="numeric">
+          <e type="operand">823.33749</e>
+        </result>
+      </math>
+    </region>
+    <region left="9" top="2394" width="232" height="52" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">xMaxErr</e>
+          <e type="operand">xMaxErr_32</e>
+          <e type="operand">2</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">clz</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">/</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="288" top="2394" width="247" height="70" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">yMaxErr</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">yMaxErrScaled</e>
+          <e type="operand">2</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">clz</e>
+          <e type="operand">2</e>
+          <e type="operator" args="2">/</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">/</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="9" top="2448" width="384" height="29" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">dXMaxErr</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">xScaled</e>
+          <e type="operand">xMaxErrScaled_32</e>
+          <e type="operator" args="2">-</e>
+          <e type="bracket">(</e>
+          <e type="operand">2</e>
+          <e type="operator" args="2">*</e>
+          <e type="function" args="1">abs</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="9" top="2493" width="569" height="109" color="#000000" fontSize="10">
+      <math evaluate="false">
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">dXMaxErr</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">xScaled</e>
+          <e type="operand">xMaxErrScaled_32</e>
+          <e type="operator" args="2">&lt;</e>
+          <e type="operand">xMaxErrScaled_32</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">xScaled</e>
+          <e type="operator" args="2">-</e>
+          <e type="bracket">(</e>
+          <e type="function" args="1">abs</e>
+          <e type="operand">Max32</e>
+          <e type="operand">xMaxErrScaled_32</e>
+          <e type="operator" args="2">/</e>
+          <e type="operator" args="2">*</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">xScaled</e>
+          <e type="operand">xMaxErrScaled_32</e>
+          <e type="operator" args="2">-</e>
+          <e type="bracket">(</e>
+          <e type="function" args="1">abs</e>
+          <e type="operand">Max32</e>
+          <e type="operand">Max32</e>
+          <e type="operand">xMaxErrScaled_32</e>
+          <e type="operator" args="2">-</e>
+          <e type="operator" args="2">/</e>
+          <e type="operator" args="2">*</e>
+          <e type="function" args="3">if</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="423" top="2637" width="268" height="36" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">dXMidErr</e>
+          <e type="operand">2</e>
+          <e type="operand">31</e>
+          <e type="operator" args="2">^</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">xScaled</e>
+          <e type="operator" args="2">-</e>
+          <e type="function" args="1">abs</e>
+          <e type="operand">2</e>
+          <e type="operator" args="2">*</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="9" top="2646" width="292" height="63" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">dQMaxErr</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">dXMaxErr</e>
+          <e type="bracket">(</e>
+          <e type="operand">2</e>
+          <e type="operator" args="2">^</e>
+          <e type="operand">2</e>
+          <e type="operand">32</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">/</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="387" top="2700" width="292" height="63" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">dQMidErr</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">dXMidErr</e>
+          <e type="bracket">(</e>
+          <e type="operand">2</e>
+          <e type="operator" args="2">^</e>
+          <e type="operand">2</e>
+          <e type="operand">32</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">/</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="9" top="2718" width="275" height="34" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">dQMaxErrInv</e>
+          <e type="operand">2</e>
+          <e type="operand">32</e>
+          <e type="operator" args="2">^</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">dQMaxErr</e>
+          <e type="operator" args="2">-</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="9" top="2790" width="442" height="52" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">parMaxErr</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">dQMaxErrInv</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">yMaxErrScaled</e>
+          <e type="operator" args="2">*</e>
+          <e type="operand">2</e>
+          <e type="operand">32</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">/</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="468" top="2790" width="275" height="34" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">dQMidErrInv</e>
+          <e type="operand">2</e>
+          <e type="operand">32</e>
+          <e type="operator" args="2">^</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">dQMidErr</e>
+          <e type="operator" args="2">-</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="9" top="2862" width="442" height="52" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">parMidErr</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">dQMidErrInv</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">yMaxErrScaled</e>
+          <e type="operator" args="2">*</e>
+          <e type="operand">2</e>
+          <e type="operand">32</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">/</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="0" top="2934" width="788" height="54" color="#000000" fontSize="10">
+      <math>
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">par</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">parMaxErr</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">dQMidErrInv</e>
+          <e type="operator" args="2">*</e>
+          <e type="operand">2</e>
+          <e type="operand">32</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">/</e>
+          <e type="operand">1</e>
+          <e type="operand">0</e>
+          <e type="operator" args="2">+</e>
+          <e type="bracket">(</e>
+          <e type="operator" args="2">*</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">parMidErr</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">dQMidErr</e>
+          <e type="operator" args="2">*</e>
+          <e type="operand">2</e>
+          <e type="operand">32</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">/</e>
+          <e type="operand">1.036486</e>
+          <e type="bracket">(</e>
+          <e type="operator" args="2">*</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operator" args="2">+</e>
+          <e type="bracket">(</e>
+          <e type="operator" args="2">:</e>
+        </input>
+      </math>
+    </region>
+    <region left="9" top="3006" width="754" height="441" color="#000000" fontSize="10">
+      <plot type="2d" render="lines" scale_x="4.93191167526713E-07" scale_y="1.19129842542431E-08" scale_z="1.39446983039491E-14" rotate_x="0" rotate_y="0" rotate_z="0" transpose_x="-340" transpose_y="-109" transpose_z="0">
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">sqrt</e>
+          <e type="operand">2</e>
+          <e type="operand">16</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">*</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">sqrtLinear</e>
+          <e type="operator" args="2">-</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">yMaxErr</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">par</e>
+          <e type="operand">2</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">clz</e>
+          <e type="operand">2</e>
+          <e type="operator" args="2">/</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">/</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">sqrt</e>
+          <e type="operand">2</e>
+          <e type="operand">16</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">*</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">sqrtLinearScaled</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">par</e>
+          <e type="operator" args="2">+</e>
+          <e type="operand">2</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">clz</e>
+          <e type="operand">2</e>
+          <e type="operator" args="2">/</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">/</e>
+          <e type="operator" args="2">-</e>
+          <e type="operand">4</e>
+          <e type="operand">1</e>
+          <e type="function" args="6">sys</e>
+        </input>
+      </plot>
+    </region>
+    <region left="9" top="3636" width="763" height="303" color="#000000" fontSize="10">
+      <plot type="2d" render="lines" scale_x="0.000126900291050915" scale_y="1.02992086276369E-08" scale_z="2.83371709235266E-12" rotate_x="0" rotate_y="0" rotate_z="0" transpose_x="-350" transpose_y="2" transpose_z="0">
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">sqrt</e>
+          <e type="operand">2</e>
+          <e type="operand">16</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">*</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">sqrtLinearScaled</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">par</e>
+          <e type="operator" args="2">+</e>
+          <e type="operand">2</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">clz</e>
+          <e type="operand">2</e>
+          <e type="operator" args="2">/</e>
+          <e type="function" args="1">trunc</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">/</e>
+          <e type="operator" args="2">-</e>
+          <e type="operand">1</e>
+          <e type="operand">1</e>
+          <e type="function" args="3">sys</e>
+        </input>
+      </plot>
+    </region>
+  </regions>
+</worksheet>
