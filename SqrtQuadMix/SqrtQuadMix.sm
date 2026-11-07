@@ -4,7 +4,7 @@
   <settings ppi="96">
     <identity>
       <id>967d0896-4ce5-4f61-8f95-908c452bc67e</id>
-      <revision>114</revision>
+      <revision>120</revision>
     </identity>
     <calculation>
       <precision>4</precision>
@@ -344,13 +344,17 @@
         </input>
       </math>
     </region>
-    <region left="18" top="711" width="317" height="25" color="#000000" fontSize="10">
+    <region left="18" top="711" width="352" height="34" color="#000000" fontSize="10">
       <math>
         <input>
           <e type="operand">x</e>
           <e type="function" args="1">sqrtLinearErr</e>
           <e type="operand">x</e>
           <e type="function" args="1">y</e>
+          <e type="operand">2</e>
+          <e type="operand">16</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">*</e>
           <e type="operand">x</e>
           <e type="function" args="1">sqrtLinear</e>
           <e type="operator" args="2">-</e>
@@ -801,18 +805,76 @@
         </input>
       </math>
     </region>
-    <region left="9" top="3006" width="754" height="441" color="#000000" fontSize="10">
-      <plot type="2d" render="lines" scale_x="4.93191167526713E-07" scale_y="1.19129842542431E-08" scale_z="1.39446983039491E-14" rotate_x="0" rotate_y="0" rotate_z="0" transpose_x="-340" transpose_y="-109" transpose_z="0">
+    <region left="18" top="3033" width="743" height="358" color="#000000" fontSize="10">
+      <plot type="2d" render="lines" scale_x="5.45151751789119E-07" scale_y="4.95057308401411E-08" scale_z="2.46955840278381E-14" rotate_x="0" rotate_y="0" rotate_z="0" transpose_x="-999" transpose_y="-142" transpose_z="0">
         <input>
           <e type="operand">x</e>
-          <e type="function" args="1">sqrt</e>
-          <e type="operand">2</e>
-          <e type="operand">16</e>
-          <e type="operator" args="2">^</e>
-          <e type="operator" args="2">*</e>
+          <e type="function" args="1">sqrtLinearErr</e>
           <e type="operand">x</e>
-          <e type="function" args="1">sqrtLinear</e>
+          <e type="function" args="1">yMaxErr</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">parMaxErr</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">parMidErr</e>
+          <e type="operand">4</e>
+          <e type="operand">1</e>
+          <e type="function" args="6">sys</e>
+        </input>
+      </plot>
+    </region>
+    <region left="18" top="3501" width="743" height="358" color="#000000" fontSize="10">
+      <plot type="2d" render="lines" scale_x="3.87619746294602E-07" scale_y="2.33280694945479E-08" scale_z="1.77366904952221E-14" rotate_x="0" rotate_y="0" rotate_z="0" transpose_x="-939" transpose_y="-100" transpose_z="0">
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">sqrtLinearErr</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">parMaxErr</e>
           <e type="operator" args="2">-</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">sqrtLinearErr</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">parMidErr</e>
+          <e type="operator" args="2">-</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">sqrtLinearErr</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">parMaxErr</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">dQMidErrInv</e>
+          <e type="operand">2</e>
+          <e type="operand">32</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">/</e>
+          <e type="operator" args="2">*</e>
+          <e type="operator" args="2">-</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">sqrtLinearErr</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">parMidErr</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">dQMidErr</e>
+          <e type="operand">2</e>
+          <e type="operand">32</e>
+          <e type="operator" args="2">^</e>
+          <e type="operator" args="2">/</e>
+          <e type="operator" args="2">*</e>
+          <e type="operator" args="2">-</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">sqrtLinearErr</e>
+          <e type="operand">x</e>
+          <e type="function" args="1">par</e>
+          <e type="operator" args="2">-</e>
+          <e type="operand">5</e>
+          <e type="operand">1</e>
+          <e type="function" args="7">sys</e>
+        </input>
+      </plot>
+    </region>
+    <region left="9" top="4185" width="754" height="441" color="#000000" fontSize="10">
+      <plot type="2d" render="lines" scale_x="5.61838929844428E-07" scale_y="1.35711642165508E-08" scale_z="1.58856745374902E-14" rotate_x="0" rotate_y="0" rotate_z="0" transpose_x="-334" transpose_y="-139" transpose_z="0">
+        <input>
+          <e type="operand">x</e>
+          <e type="function" args="1">sqrtLinearErr</e>
           <e type="operand">x</e>
           <e type="function" args="1">yMaxErr</e>
           <e type="operand">x</e>
@@ -825,37 +887,17 @@
           <e type="function" args="1">trunc</e>
           <e type="operator" args="2">^</e>
           <e type="operator" args="2">/</e>
-          <e type="operand">x</e>
-          <e type="function" args="1">sqrt</e>
-          <e type="operand">2</e>
-          <e type="operand">16</e>
-          <e type="operator" args="2">^</e>
-          <e type="operator" args="2">*</e>
-          <e type="operand">x</e>
-          <e type="function" args="1">sqrtLinearScaled</e>
-          <e type="operand">x</e>
-          <e type="function" args="1">par</e>
-          <e type="operator" args="2">+</e>
-          <e type="operand">2</e>
-          <e type="operand">x</e>
-          <e type="function" args="1">clz</e>
-          <e type="operand">2</e>
-          <e type="operator" args="2">/</e>
-          <e type="function" args="1">trunc</e>
-          <e type="operator" args="2">^</e>
-          <e type="operator" args="2">/</e>
-          <e type="operator" args="2">-</e>
-          <e type="operand">4</e>
+          <e type="operand">3</e>
           <e type="operand">1</e>
-          <e type="function" args="6">sys</e>
+          <e type="function" args="5">sys</e>
         </input>
       </plot>
     </region>
-    <region left="9" top="3636" width="763" height="303" color="#000000" fontSize="10">
+    <region left="9" top="4761" width="763" height="303" color="#000000" fontSize="10">
       <plot type="2d" render="lines" scale_x="0.000126900291050915" scale_y="1.02992086276369E-08" scale_z="2.83371709235266E-12" rotate_x="0" rotate_y="0" rotate_z="0" transpose_x="-350" transpose_y="2" transpose_z="0">
         <input>
           <e type="operand">x</e>
-          <e type="function" args="1">sqrt</e>
+          <e type="function" args="1">y</e>
           <e type="operand">2</e>
           <e type="operand">16</e>
           <e type="operator" args="2">^</e>
